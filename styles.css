@@ -369,6 +369,19 @@ body {
   text-align: center;
 }
 
+.clients-logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.clients-logos img {
+  max-width: 100%;
+  height: auto;
+  opacity: 0.95;
+}
+
 /* Responsive */
 
 @media (max-width: 900px) {
