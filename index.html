@@ -11,19 +11,45 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   
-<!-- Google Analytics (GA4) -->
+<!-- Google Analytics (GA4) with Consent Mode -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WE36ENJ79Q"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
+
   gtag('js', new Date());
+
+  // Default: no analytics cookies until user accepts
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'analytics_storage': 'denied'
+  });
+
+  // We'll call this again with "granted" from our banner script when user accepts
   gtag('config', 'G-WE36ENJ79Q');
 </script>
+
   
   <!-- Main stylesheet -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div id="cookie-consent" class="cookie-banner" aria-live="polite">
+    <div class="cookie-inner">
+      <p>
+        We use cookies from Google Analytics to understand how our website is used. 
+        You can accept or decline analytics cookies.
+      </p>
+      <div class="cookie-actions">
+        <button id="cookie-accept" class="btn btn-primary btn-small">Accept</button>
+        <button id="cookie-decline" class="btn btn-outline btn-small">Decline</button>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header">
+    ...
+
   <header class="site-header">
     <div class="container header-inner">
       <div class="logo">
