@@ -427,6 +427,58 @@ body {
 
 /* Responsive */
 
+/* Cookie / consent banner */
+
+.cookie-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.97);
+  color: #e5e7eb;
+  padding: 0.9rem 0;
+  font-size: 0.85rem;
+}
+
+.cookie-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.cookie-inner p {
+  margin: 0;
+}
+
+.cookie-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.btn-small {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 700px) {
+  .cookie-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cookie-actions {
+    justify-content: flex-start;
+  }
+}
+
+
 @media (max-width: 900px) {
   .nav {
     display: none; /* simple: hide nav on small screens */
