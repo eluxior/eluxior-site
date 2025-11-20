@@ -239,9 +239,70 @@
     </div>
   </footer>
 
-  <script>
+   <script>
     // Set current year in footer
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Simple consent handling for GA4
+    (function () {
+      var banner = document.getElementById('cookie-consent');
+      var acceptBtn = document.getElementById('cookie-accept');
+      var declineBtn = document.getElementById('cookie-decline');
+      var CONSENT_KEY = 'eluxiorConsent';
+
+      function setConsent(status) {
+        try {
+          window.localStorage.setItem(CONSENT_KEY, status);
+        } catch (e) {}
+      }
+
+      function hideBanner() {
+        if (banner) banner.style.display = 'none';
+      }
+
+      function showBanner() {
+        if (banner) banner.style.display = 'block';
+      }
+
+      function grantAnalytics() {
+        if (typeof gtag === 'function') {
+          gtag('consent', 'update', {
+            'analytics_storage': 'granted',
+            'ad_storage': 'denied' // keep ads disabled
+          });
+        }
+      }
+
+      // On load: check stored choice
+      var stored = null;
+      try {
+        stored = window.localStorage.getItem(CONSENT_KEY);
+      } catch (e) {}
+
+      if (stored === 'granted') {
+        grantAnalytics();
+        hideBanner();
+      } else if (stored === 'denied') {
+        hideBanner(); // keep default 'denied'
+      } else {
+        showBanner();
+      }
+
+      if (acceptBtn) {
+        acceptBtn.addEventListener('click', function () {
+          setConsent('granted');
+          grantAnalytics();
+          hideBanner();
+        });
+      }
+
+      if (declineBtn) {
+        declineBtn.addEventListener('click', function () {
+          setConsent('denied');
+          hideBanner(); // GA stays in denied mode
+        });
+      }
+    })();
   </script>
 </body>
 </html>
