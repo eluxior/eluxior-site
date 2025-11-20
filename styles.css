@@ -45,39 +45,17 @@ body {
   border-bottom: 1px solid rgba(0, 0, 0, 0.03);
 }
 
+/* slightly more left padding in header so logo isn't glued to edge */
+.site-header .container {
+  padding-left: 2rem;
+  padding-right: 1.5rem;
+}
+
 .header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 0;
-}
-
-.logo {
-  display: flex;
-  flex-direction: column;
-}
-
-.logo-main {
-  font-family: "Montserrat", system-ui, sans-serif;
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-}
-
-.logo-o {
-  font-family: "Montserrat", system-ui, sans-serif;
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: var(--color-accent);
-}
-
-.logo-tagline {
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  margin-top: 0.15rem;
-  color: #555;
 }
 
 .logo {
@@ -99,6 +77,17 @@ body {
   letter-spacing: 0.18em;
 }
 
+.logo-o {
+  color: var(--color-accent);
+}
+
+.logo-tagline {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: 0.15rem;
+  color: #555;
+}
 
 .nav {
   display: flex;
@@ -312,7 +301,7 @@ body {
   border-top: 3px solid var(--color-deep-blue);
 }
 
-/* Partnership */
+/* Partnership / Asia sourcing */
 
 .partnership-list {
   margin: 1rem 0 1.5rem;
@@ -323,7 +312,30 @@ body {
   margin-bottom: 0.35rem;
 }
 
+/* Clients */
+
+.section-clients {
+  padding-bottom: 2.2rem; /* slightly tighter to contact */
+}
+
+.clients-logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.clients-logos img {
+  max-width: 100%;
+  height: auto;
+  opacity: 0.95;
+}
+
 /* Contact */
+
+.section-contact {
+  padding-top: 3rem; /* reduce gap above contact */
+}
 
 .contact-card {
   background-color: #ffffff;
@@ -341,6 +353,21 @@ body {
   margin-bottom: 0.2rem;
 }
 
+.contact-note {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.contact-email {
+  margin-top: 0.9rem;
+  font-size: 0.9rem;
+}
+
+.at-text {
+  padding: 0 0.1rem;
+}
+
 .contact-card a {
   color: var(--color-deep-blue);
   text-decoration: none;
@@ -350,10 +377,39 @@ body {
   text-decoration: underline;
 }
 
-.contact-note {
-  margin-top: 0.75rem;
-  font-size: 0.9rem;
-  color: #666;
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.contact-form label {
+  font-size: 0.85rem;
+  color: #555;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.contact-form input,
+.contact-form textarea {
+  border-radius: 0.75rem;
+  border: 1px solid #ddd;
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+  resize: vertical;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: 2px solid var(--color-deep-blue);
+  border-color: var(--color-deep-blue);
+}
+
+.contact-form button {
+  align-self: flex-start;
+  margin-top: 0.5rem;
 }
 
 /* Footer */
@@ -369,24 +425,11 @@ body {
   text-align: center;
 }
 
-.clients-logos {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 1.5rem;
-}
-
-.clients-logos img {
-  max-width: 100%;
-  height: auto;
-  opacity: 0.95;
-}
-
 /* Responsive */
 
 @media (max-width: 900px) {
   .nav {
-    display: none; /* Keep it simple: no burger menu for now */
+    display: none; /* simple: hide nav on small screens */
   }
 
   .grid-3 {
@@ -399,6 +442,11 @@ body {
 
   .hero {
     min-height: 70vh;
+  }
+
+  .site-header .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 }
 
