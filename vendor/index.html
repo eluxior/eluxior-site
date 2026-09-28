@@ -230,15 +230,23 @@ async function loadAdminUsers(){
   const box=document.getElementById('admin-users');
   try{
     const d=await adminApi('/v1/admin/users');
-    box.innerHTML='<h3 style="font-family:Montserrat,sans-serif;font-size:1rem">Accounts</h3>'+d.users.map(u=>{
-      const vendor=u.role==='admin'?'ELUXIOR admin':escapeHtml(u.vendor_key);
-      const status=u.active?'Active':'Disabled';
-      const pwd=u.must_change_password?' · password change pending':'';
-      const actions=u.role==='admin'?'':`<div class="portal-actions" style="margin-top:.55rem">
-        <button class="btn btn-primary admin-reset" data-email="${escapeHtml(u.email)}" type="button">Reset password</button>
-        <button class="btn btn-primary admin-active" data-email="${escapeHtml(u.email)}" data-active="${u.active?0:1}" type="button">${u.active?'Disable':'Enable'}</button>
-      </div>`;
-      return `<div style="padding:.9rem 0;border-top:1px solid #ececf1"><strong>${escapeHtml(u.display_name||u.email)}</strong><div class="portal-status">${escapeHtml(u.email)} · ${vendor} · ${status}${pwd}</div>${actions}</div>`;
+    const groups={};
+    d.users.forEach(u=>{
+      const company=u.role==='admin'?'ELUXIOR':(u.vendor_key||'UNASSIGNED');
+      (groups[company]||(groups[company]=[])).push(u);
+    });
+    const ordered=Object.keys(groups).sort((a,b)=>a==='ELUXIOR'?-1:b==='ELUXIOR'?1:a.localeCompare(b));
+    box.innerHTML='<h3 style="font-family:Montserrat,sans-serif;font-size:1rem">Vendor companies</h3>'+ordered.map(company=>{
+      const contacts=groups[company].map(u=>{
+        const status=u.active?'Active':'Disabled';
+        const pwd=u.must_change_password?' · password change pending':'';
+        const actions=u.role==='admin'?'':`<div class="portal-actions" style="margin-top:.55rem">
+          <button class="btn btn-primary admin-reset" data-email="${escapeHtml(u.email)}" type="button">Reset password</button>
+          <button class="btn btn-primary admin-active" data-email="${escapeHtml(u.email)}" data-active="${u.active?0:1}" type="button">${u.active?'Disable':'Enable'}</button>
+        </div>`;
+        return `<div style="padding:.7rem 0 .85rem 1rem;border-top:1px solid #ececf1"><strong>${escapeHtml(u.display_name||u.email)}</strong><div class="portal-status">${escapeHtml(u.email)} · ${status}${pwd}</div>${actions}</div>`;
+      }).join('');
+      return `<section style="margin-top:1rem"><h4 style="font-family:Montserrat,sans-serif;font-size:1.05rem;margin:0 0 .35rem;color:var(--color-deep-blue)">${escapeHtml(company)}</h4>${contacts}</section>`;
     }).join('');
     box.querySelectorAll('.admin-reset').forEach(btn=>btn.addEventListener('click',()=>resetVendorPassword(btn.dataset.email)));
     box.querySelectorAll('.admin-active').forEach(btn=>btn.addEventListener('click',()=>setVendorActive(btn.dataset.email,btn.dataset.active==='1')));
