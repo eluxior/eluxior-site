@@ -107,6 +107,7 @@
           </div>
           <h2>Ask ELUXIOR</h2>
           <p class="portal-note">The portal answers only when an approved ELUXIOR source supports the response. The current PO and later authorised TJX instructions prevail.</p>
+          <p class="portal-note"><strong>Please submit your questions in English.</strong> This helps the portal identify the correct ELUXIOR guidance and provide the most reliable answer.</p>
           <form id="chat-form" class="portal-form">
             <label>Your question<textarea id="question" maxlength="1800" placeholder="Example: When should I create the VLA e-booking for TK Maxx Europe?" required></textarea></label>
             <div class="portal-actions">
@@ -120,6 +121,22 @@
           </div>
         </div>
 
+        <div id="admin-card" class="portal-card portal-hidden">
+          <h2>Vendor account administration</h2>
+          <p class="portal-note">Visible only to ELUXIOR administrators. Create vendor accounts, reset temporary passwords and enable or disable access.</p>
+          <form id="admin-create-form" class="portal-form">
+            <label>Vendor / company key<input id="admin-vendor-key" type="text" placeholder="OLIVEART" required /></label>
+            <label>Display name<input id="admin-display-name" type="text" placeholder="Marwa — OliveArt" required /></label>
+            <label>Email<input id="admin-email" type="email" required /></label>
+            <div class="portal-actions">
+              <button class="btn btn-primary" type="submit">Create vendor account</button>
+              <span id="admin-status" class="portal-status"></span>
+            </div>
+          </form>
+          <div id="admin-created" class="portal-answer portal-hidden"></div>
+          <div id="admin-users" style="margin-top:1.25rem"></div>
+        </div>
+
         <p class="portal-note">Do not enter passwords, banking credentials, secret keys or other confidential authentication information into the question box. If the portal cannot ground an answer in an approved source, contact ELUXIOR directly.</p>
       </div>
     </section>
@@ -129,7 +146,7 @@
 
 <script>
 const API='https://eluxior-vendor-api.marco-eluxior.workers.dev';
-const loginCard=document.getElementById('login-card'),passwordCard=document.getElementById('password-card'),chatCard=document.getElementById('chat-card');
+const loginCard=document.getElementById('login-card'),passwordCard=document.getElementById('password-card'),chatCard=document.getElementById('chat-card'),adminCard=document.getElementById('admin-card');
 const loginForm=document.getElementById('login-form'),passwordForm=document.getElementById('password-form'),chatForm=document.getElementById('chat-form');
 const loginStatus=document.getElementById('login-status'),passwordStatus=document.getElementById('password-status'),chatStatus=document.getElementById('chat-status');
 const answerWrap=document.getElementById('answer-wrap'),answer=document.getElementById('answer'),source=document.getElementById('source');
@@ -156,6 +173,8 @@ function renderSession(){
   loginCard.classList.toggle('portal-hidden',!!token);
   passwordCard.classList.toggle('portal-hidden',!mustChange);
   chatCard.classList.toggle('portal-hidden',!token||mustChange);
+  adminCard.classList.toggle('portal-hidden',!token||mustChange||user.role!=='admin');
+  if(token&&!mustChange&&user.role==='admin') loadAdminUsers();
   document.getElementById('user-name').textContent=user.display_name||user.vendor_key||'Vendor';
   document.getElementById('user-email').textContent=user.email||'';
 }
@@ -199,6 +218,58 @@ chatForm.addEventListener('submit',async(e)=>{
     chatStatus.textContent='';
   }catch(err){chatStatus.textContent=err.message;chatStatus.className='portal-status portal-error';}
 });
+
+async function adminApi(path,body){
+  const token=sessionStorage.getItem('eluxiorVendorToken');
+  const r=await fetch(API+path,{method:body===undefined?'GET':'POST',headers:{...(body===undefined?{}:{'content-type':'application/json'}),'authorization':'Bearer '+token},body:body===undefined?undefined:JSON.stringify(body)});
+  const d=await r.json(); if(!r.ok)throw new Error(d.error||'Admin operation failed.'); return d;
+}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+async function loadAdminUsers(){
+  const box=document.getElementById('admin-users');
+  try{
+    const d=await adminApi('/v1/admin/users');
+    box.innerHTML='<h3 style="font-family:Montserrat,sans-serif;font-size:1rem">Accounts</h3>'+d.users.map(u=>{
+      const vendor=u.role==='admin'?'ELUXIOR admin':escapeHtml(u.vendor_key);
+      const status=u.active?'Active':'Disabled';
+      const pwd=u.must_change_password?' · password change pending':'';
+      const actions=u.role==='admin'?'':`<div class="portal-actions" style="margin-top:.55rem">
+        <button class="btn btn-primary admin-reset" data-email="${escapeHtml(u.email)}" type="button">Reset password</button>
+        <button class="btn btn-primary admin-active" data-email="${escapeHtml(u.email)}" data-active="${u.active?0:1}" type="button">${u.active?'Disable':'Enable'}</button>
+      </div>`;
+      return `<div style="padding:.9rem 0;border-top:1px solid #ececf1"><strong>${escapeHtml(u.display_name||u.email)}</strong><div class="portal-status">${escapeHtml(u.email)} · ${vendor} · ${status}${pwd}</div>${actions}</div>`;
+    }).join('');
+    box.querySelectorAll('.admin-reset').forEach(btn=>btn.addEventListener('click',()=>resetVendorPassword(btn.dataset.email)));
+    box.querySelectorAll('.admin-active').forEach(btn=>btn.addEventListener('click',()=>setVendorActive(btn.dataset.email,btn.dataset.active==='1')));
+  }catch(err){box.innerHTML='<div class="portal-status portal-error">'+escapeHtml(err.message)+'</div>';}
+}
+document.getElementById('admin-create-form').addEventListener('submit',async(e)=>{
+  e.preventDefault();
+  const status=document.getElementById('admin-status'),created=document.getElementById('admin-created');
+  status.textContent='Creating…';created.classList.add('portal-hidden');
+  try{
+    const d=await adminApi('/v1/admin/create-user',{vendor_key:document.getElementById('admin-vendor-key').value,display_name:document.getElementById('admin-display-name').value,email:document.getElementById('admin-email').value});
+    status.textContent='Account created.';
+    created.classList.remove('portal-hidden');
+    created.textContent='Temporary credentials — share only with the intended user\nEmail: '+d.email+'\nTemporary password: '+d.temporary_password;
+    e.target.reset(); await loadAdminUsers();
+  }catch(err){status.textContent=err.message;status.className='portal-status portal-error';}
+});
+async function resetVendorPassword(email){
+  if(!confirm('Reset the temporary password for '+email+'?'))return;
+  const created=document.getElementById('admin-created');
+  try{
+    const d=await adminApi('/v1/admin/reset-password',{email});
+    created.classList.remove('portal-hidden');
+    created.textContent='New temporary credentials — share only with the intended user\nEmail: '+d.email+'\nTemporary password: '+d.temporary_password;
+    await loadAdminUsers();
+  }catch(err){alert(err.message);}
+}
+async function setVendorActive(email,active){
+  if(!confirm((active?'Enable ':'Disable ')+email+'?'))return;
+  try{await adminApi('/v1/admin/set-active',{email,active});await loadAdminUsers();}catch(err){alert(err.message);}
+}
+
 document.getElementById('logout').addEventListener('click',async()=>{
   const token=sessionStorage.getItem('eluxiorVendorToken');
   try{if(token)await fetch(API+'/v1/auth/logout',{method:'POST',headers:{'authorization':'Bearer '+token}});}catch(e){}
