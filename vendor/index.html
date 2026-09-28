@@ -108,6 +108,7 @@
           <h2>Ask ELUXIOR</h2>
           <p class="portal-note">The portal answers only when an approved ELUXIOR source supports the response. The current PO and later authorised TJX instructions prevail.</p>
           <p class="portal-note"><strong>Please submit your questions in English.</strong> This helps the portal identify the correct ELUXIOR guidance and provide the most reliable answer.</p>
+          <p class="portal-note">If the portal cannot provide a grounded answer, contact <a class="portal-link" href="mailto:admin@eluxiorsourcing.com">admin@eluxiorsourcing.com</a>.</p>
           <form id="chat-form" class="portal-form">
             <label>Your question<textarea id="question" maxlength="1800" placeholder="Example: When should I create the VLA e-booking for TK Maxx Europe?" required></textarea></label>
             <div class="portal-actions">
@@ -252,6 +253,7 @@ document.getElementById('admin-create-form').addEventListener('submit',async(e)=
     status.textContent='Account created.';
     created.classList.remove('portal-hidden');
     created.textContent='Temporary credentials — share only with the intended user\nEmail: '+d.email+'\nTemporary password: '+d.temporary_password;
+    const copy=document.createElement('button');copy.type='button';copy.className='btn btn-primary';copy.style.marginTop='.8rem';copy.textContent='Copy credentials';copy.addEventListener('click',async()=>{await navigator.clipboard.writeText('ELUXIOR Vendor Portal\nhttps://www.eluxiorsourcing.com/vendor/\nEmail: '+d.email+'\nTemporary password: '+d.temporary_password+'\nYou will be asked to set a new password at first sign-in.');copy.textContent='Copied';});created.appendChild(document.createElement('br'));created.appendChild(copy);
     e.target.reset(); await loadAdminUsers();
   }catch(err){status.textContent=err.message;status.className='portal-status portal-error';}
 });
@@ -262,6 +264,7 @@ async function resetVendorPassword(email){
     const d=await adminApi('/v1/admin/reset-password',{email});
     created.classList.remove('portal-hidden');
     created.textContent='New temporary credentials — share only with the intended user\nEmail: '+d.email+'\nTemporary password: '+d.temporary_password;
+    const copy=document.createElement('button');copy.type='button';copy.className='btn btn-primary';copy.style.marginTop='.8rem';copy.textContent='Copy credentials';copy.addEventListener('click',async()=>{await navigator.clipboard.writeText('ELUXIOR Vendor Portal\nhttps://www.eluxiorsourcing.com/vendor/\nEmail: '+d.email+'\nTemporary password: '+d.temporary_password+'\nYou will be asked to set a new password at first sign-in.');copy.textContent='Copied';});created.appendChild(document.createElement('br'));created.appendChild(copy);
     await loadAdminUsers();
   }catch(err){alert(err.message);}
 }
