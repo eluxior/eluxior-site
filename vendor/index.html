@@ -74,6 +74,20 @@
           </form>
         </div>
 
+        <div id="password-card" class="portal-card portal-hidden">
+          <h2>Set your password</h2>
+          <p class="portal-note">For security, replace the temporary password before using the vendor support portal.</p>
+          <form id="password-form" class="portal-form">
+            <label>Temporary password<input id="current-password" type="password" autocomplete="current-password" required /></label>
+            <label>New password<input id="new-password" type="password" autocomplete="new-password" minlength="12" required /></label>
+            <label>Repeat new password<input id="repeat-password" type="password" autocomplete="new-password" minlength="12" required /></label>
+            <div class="portal-actions">
+              <button class="btn btn-primary" type="submit">Save password</button>
+              <span id="password-status" class="portal-status"></span>
+            </div>
+          </form>
+        </div>
+
         <div id="chat-card" class="portal-card portal-hidden">
           <div class="portal-user">
             <div><strong id="user-name">Vendor</strong><div id="user-email" class="portal-status"></div></div>
@@ -103,9 +117,9 @@
 
 <script>
 const API='https://eluxior-vendor-api.marco-eluxior.workers.dev';
-const loginCard=document.getElementById('login-card'),chatCard=document.getElementById('chat-card');
-const loginForm=document.getElementById('login-form'),chatForm=document.getElementById('chat-form');
-const loginStatus=document.getElementById('login-status'),chatStatus=document.getElementById('chat-status');
+const loginCard=document.getElementById('login-card'),passwordCard=document.getElementById('password-card'),chatCard=document.getElementById('chat-card');
+const loginForm=document.getElementById('login-form'),passwordForm=document.getElementById('password-form'),chatForm=document.getElementById('chat-form');
+const loginStatus=document.getElementById('login-status'),passwordStatus=document.getElementById('password-status'),chatStatus=document.getElementById('chat-status');
 const answerWrap=document.getElementById('answer-wrap'),answer=document.getElementById('answer'),source=document.getElementById('source');
 document.getElementById('year').textContent=new Date().getFullYear();
 
@@ -117,7 +131,10 @@ function setSession(token,user){
 function renderSession(){
   const token=sessionStorage.getItem('eluxiorVendorToken');
   let user={}; try{user=JSON.parse(sessionStorage.getItem('eluxiorVendorUser')||'{}')}catch(e){}
-  loginCard.classList.toggle('portal-hidden',!!token);chatCard.classList.toggle('portal-hidden',!token);
+  const mustChange=!!(token&&user.must_change_password);
+  loginCard.classList.toggle('portal-hidden',!!token);
+  passwordCard.classList.toggle('portal-hidden',!mustChange);
+  chatCard.classList.toggle('portal-hidden',!token||mustChange);
   document.getElementById('user-name').textContent=user.display_name||user.vendor_key||'Vendor';
   document.getElementById('user-email').textContent=user.email||'';
 }
@@ -129,6 +146,23 @@ loginForm.addEventListener('submit',async(e)=>{
     if(!r.ok) throw new Error(d.error||'Sign in failed.');
     document.getElementById('password').value=''; setSession(d.token,d.user);
   }catch(err){loginStatus.textContent=err.message;loginStatus.className='portal-status portal-error';}
+});
+passwordForm.addEventListener('submit',async(e)=>{
+  e.preventDefault();
+  const token=sessionStorage.getItem('eluxiorVendorToken');
+  const current=document.getElementById('current-password').value;
+  const next=document.getElementById('new-password').value;
+  const repeat=document.getElementById('repeat-password').value;
+  passwordStatus.className='portal-status';
+  if(next!==repeat){passwordStatus.textContent='The new passwords do not match.';passwordStatus.className='portal-status portal-error';return;}
+  passwordStatus.textContent='Saving…';
+  try{
+    const r=await fetch(API+'/v1/auth/change-password',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+token},body:JSON.stringify({current_password:current,new_password:next})});
+    const d=await r.json(); if(!r.ok)throw new Error(d.error||'Unable to change password.');
+    let user=JSON.parse(sessionStorage.getItem('eluxiorVendorUser')||'{}');user.must_change_password=false;sessionStorage.setItem('eluxiorVendorUser',JSON.stringify(user));
+    document.getElementById('current-password').value='';document.getElementById('new-password').value='';document.getElementById('repeat-password').value='';
+    renderSession();
+  }catch(err){passwordStatus.textContent=err.message;passwordStatus.className='portal-status portal-error';}
 });
 chatForm.addEventListener('submit',async(e)=>{
   e.preventDefault(); const token=sessionStorage.getItem('eluxiorVendorToken'); if(!token){setSession(null);return;}
