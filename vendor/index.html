@@ -171,10 +171,7 @@ function setSession(token,user){
 }
 function loadRememberedLogin(){
   const saved=localStorage.getItem('eluxiorRememberedEmail')||'';
-  if(saved){
-    document.getElementById('email').value=saved;
-    document.getElementById('remember-login').checked=true;
-  }
+  if(saved){document.getElementById('email').value=saved;document.getElementById('remember-login').checked=true;}
 }
 function renderSession(){
   const token=sessionStorage.getItem('eluxiorVendorToken');
@@ -270,48 +267,10 @@ async function loadAdminUsage(){
   try{
     const d=await adminApi('/v1/admin/usage');
     const rows=d.users||[];
-    const money=v=>'
-  e.preventDefault();
-  const status=document.getElementById('admin-status'),created=document.getElementById('admin-created');
-  status.textContent='Creating…';created.classList.add('portal-hidden');
-  try{
-    const d=await adminApi('/v1/admin/create-user',{vendor_key:document.getElementById('admin-vendor-key').value,display_name:document.getElementById('admin-display-name').value,email:document.getElementById('admin-email').value});
-    status.textContent='Account created.';
-    created.classList.remove('portal-hidden');
-    created.textContent='Temporary credentials — share only with the intended user\nEmail: '+d.email+'\nTemporary password: '+d.temporary_password;
-    const copy=document.createElement('button');copy.type='button';copy.className='btn btn-primary';copy.style.marginTop='.8rem';copy.textContent='Copy credentials';copy.addEventListener('click',async()=>{await navigator.clipboard.writeText('ELUXIOR Vendor Portal\nhttps://www.eluxiorsourcing.com/vendor/\nEmail: '+d.email+'\nTemporary password: '+d.temporary_password+'\nYou will be asked to set a new password at first sign-in.');copy.textContent='Copied';});created.appendChild(document.createElement('br'));created.appendChild(copy);
-    e.target.reset(); await loadAdminUsers();
-  }catch(err){status.textContent=err.message;status.className='portal-status portal-error';}
-});
-async function resetVendorPassword(email){
-  if(!confirm('Reset the temporary password for '+email+'?'))return;
-  const created=document.getElementById('admin-created');
-  try{
-    const d=await adminApi('/v1/admin/reset-password',{email});
-    created.classList.remove('portal-hidden');
-    created.textContent='New temporary credentials — share only with the intended user\nEmail: '+d.email+'\nTemporary password: '+d.temporary_password;
-    const copy=document.createElement('button');copy.type='button';copy.className='btn btn-primary';copy.style.marginTop='.8rem';copy.textContent='Copy credentials';copy.addEventListener('click',async()=>{await navigator.clipboard.writeText('ELUXIOR Vendor Portal\nhttps://www.eluxiorsourcing.com/vendor/\nEmail: '+d.email+'\nTemporary password: '+d.temporary_password+'\nYou will be asked to set a new password at first sign-in.');copy.textContent='Copied';});created.appendChild(document.createElement('br'));created.appendChild(copy);
-    await loadAdminUsers();
-  }catch(err){alert(err.message);}
-}
-async function setVendorActive(email,active){
-  if(!confirm((active?'Enable ':'Disable ')+email+'?'))return;
-  try{await adminApi('/v1/admin/set-active',{email,active});await loadAdminUsers();}catch(err){alert(err.message);}
-}
-
-document.getElementById('logout').addEventListener('click',async()=>{
-  const token=sessionStorage.getItem('eluxiorVendorToken');
-  try{if(token)await fetch(API+'/v1/auth/logout',{method:'POST',headers:{'authorization':'Bearer '+token}});}catch(e){}
-  setSession(null); answerWrap.classList.add('portal-hidden'); document.getElementById('question').value='';
-});
-loadRememberedLogin();
-renderSession();
-</script>
-</body>
-</html>+Number(v||0).toFixed(5);
+    const money=v=>'USD '+Number(v||0).toFixed(5);
     const num=v=>Number(v||0).toLocaleString();
     box.innerHTML='<h3 style="font-family:Montserrat,sans-serif;font-size:1rem;margin-bottom:.35rem">Chat usage & estimated AI cost</h3>'+
-      '<div class="usage-meta">Model: '+escapeHtml(d.pricing?.model||'')+' · pricing estimate: $0.20/M input tokens and $0.30/M output tokens.</div>'+
+      '<div class="usage-meta">Model: '+escapeHtml(d.pricing?.model||'')+' · estimate based on current input/output token rates.</div>'+
       '<div style="overflow-x:auto"><table class="usage-table"><thead><tr><th>Vendor / user</th><th>Interactions</th><th>30 days</th><th>Tokens total</th><th>Est. cost total</th><th>Est. cost 30d</th><th>Last activity</th></tr></thead><tbody>'+
       rows.map(u=>'<tr><td><strong>'+escapeHtml(u.vendor_key||'')+'</strong><br>'+escapeHtml(u.display_name||u.email)+'<br><span class="usage-meta">'+escapeHtml(u.email)+'</span></td><td>'+num(u.interactions_all)+'</td><td>'+num(u.interactions_30d)+'</td><td>'+num(u.tokens_all)+'</td><td>'+money(u.cost_all_usd)+'</td><td>'+money(u.cost_30d_usd)+'</td><td>'+(u.last_interaction_at?escapeHtml(u.last_interaction_at):'—')+'</td></tr>').join('')+
       '</tbody></table></div>';
@@ -351,6 +310,7 @@ document.getElementById('logout').addEventListener('click',async()=>{
   try{if(token)await fetch(API+'/v1/auth/logout',{method:'POST',headers:{'authorization':'Bearer '+token}});}catch(e){}
   setSession(null); answerWrap.classList.add('portal-hidden'); document.getElementById('question').value='';
 });
+loadRememberedLogin();
 renderSession();
 </script>
 </body>
