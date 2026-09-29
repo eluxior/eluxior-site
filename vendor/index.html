@@ -77,6 +77,7 @@
             <label>Password
               <div class="password-field"><input id="password" type="password" autocomplete="current-password" minlength="10" required /><button type="button" class="password-toggle" data-target="password">Show</button></div>
             </label>
+            <label style="display:flex;align-items:center;gap:.5rem;font-weight:400"><input id="remember-login" type="checkbox" style="width:auto" /> Remember my login on this device</label>
             <div class="portal-actions">
               <button class="btn btn-primary" type="submit">Sign in</button>
               <span id="login-status" class="portal-status"></span>
@@ -168,9 +169,19 @@ document.querySelectorAll('.password-toggle').forEach((btn)=>{
 });
 
 function setSession(token,user){
-  if(token){sessionStorage.setItem('eluxiorVendorToken',token);sessionStorage.setItem('eluxiorVendorUser',JSON.stringify(user||{}));}
-  else{sessionStorage.removeItem('eluxiorVendorToken');sessionStorage.removeItem('eluxiorVendorUser');}
-  renderSession();
+  if(token){
+    sessionStorage.setItem('eluxiorVendorToken',token);
+    sessionStorage.setItem('eluxiorVendorUser',JSON.stringify(user||{}));
+  } else {
+    sessionStorage.removeItem('eluxiorVendorToken');
+    sessionStorage.removeItem('eluxiorVendorUser');
+  }
+  loadRememberedLogin();
+renderSession();
+}
+function loadRememberedLogin(){
+  const saved=localStorage.getItem('eluxiorRememberedEmail')||'';
+  if(saved){document.getElementById('email').value=saved;document.getElementById('remember-login').checked=true;}
 }
 function renderSession(){
   const token=sessionStorage.getItem('eluxiorVendorToken');
@@ -190,6 +201,9 @@ loginForm.addEventListener('submit',async(e)=>{
     const r=await fetch(API+'/v1/auth/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:document.getElementById('email').value.trim(),password:document.getElementById('password').value})});
     const d=await r.json();
     if(!r.ok) throw new Error(d.error||'Sign in failed.');
+    const remember=document.getElementById('remember-login').checked;
+    if(remember)localStorage.setItem('eluxiorRememberedEmail',document.getElementById('email').value.trim());
+    else localStorage.removeItem('eluxiorRememberedEmail');
     document.getElementById('password').value=''; setSession(d.token,d.user);
   }catch(err){loginStatus.textContent=err.message;loginStatus.className='portal-status portal-error';}
 });
