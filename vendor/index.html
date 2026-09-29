@@ -40,10 +40,6 @@
     .password-toggle:hover{background:#f3f3f7}
     .portal-back{color:#e4e8ff;text-decoration:none;font-size:.88rem}
     .portal-back:hover{text-decoration:underline}
-    .usage-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:.7rem}
-    .usage-table th,.usage-table td{padding:.55rem .45rem;border-bottom:1px solid #ececf1;text-align:left;vertical-align:top}
-    .usage-table th{font-weight:600;color:#555}
-    .usage-meta{font-size:.78rem;color:#6d6d75;line-height:1.5}
     @media(max-width:600px){.portal-hero{padding:3rem 0}.portal-section{padding-top:2rem}.portal-card{padding:1.35rem 1.2rem}}
   </style>
 </head>
@@ -77,7 +73,7 @@
             <label>Password
               <div class="password-field"><input id="password" type="password" autocomplete="current-password" minlength="10" required /><button type="button" class="password-toggle" data-target="password">Show</button></div>
             </label>
-            <label style="display:flex;align-items:center;gap:.5rem;font-weight:400"><input id="remember-login" type="checkbox" style="width:auto" /> Remember my login on this device</label>
+            <label style="display:flex;align-items:center;gap:.5rem;font-weight:400"><input id="remember-login" type="checkbox" style="width:auto" /> Remember my email on this device</label>
             <div class="portal-actions">
               <button class="btn btn-primary" type="submit">Sign in</button>
               <span id="login-status" class="portal-status"></span>
@@ -169,19 +165,16 @@ document.querySelectorAll('.password-toggle').forEach((btn)=>{
 });
 
 function setSession(token,user){
-  if(token){
-    sessionStorage.setItem('eluxiorVendorToken',token);
-    sessionStorage.setItem('eluxiorVendorUser',JSON.stringify(user||{}));
-  } else {
-    sessionStorage.removeItem('eluxiorVendorToken');
-    sessionStorage.removeItem('eluxiorVendorUser');
-  }
-  loadRememberedLogin();
-renderSession();
+  if(token){sessionStorage.setItem('eluxiorVendorToken',token);sessionStorage.setItem('eluxiorVendorUser',JSON.stringify(user||{}));}
+  else{sessionStorage.removeItem('eluxiorVendorToken');sessionStorage.removeItem('eluxiorVendorUser');}
+  renderSession();
 }
 function loadRememberedLogin(){
   const saved=localStorage.getItem('eluxiorRememberedEmail')||'';
-  if(saved){document.getElementById('email').value=saved;document.getElementById('remember-login').checked=true;}
+  if(saved){
+    document.getElementById('email').value=saved;
+    document.getElementById('remember-login').checked=true;
+  }
 }
 function renderSession(){
   const token=sessionStorage.getItem('eluxiorVendorToken');
@@ -311,19 +304,19 @@ document.getElementById('logout').addEventListener('click',async()=>{
   try{if(token)await fetch(API+'/v1/auth/logout',{method:'POST',headers:{'authorization':'Bearer '+token}});}catch(e){}
   setSession(null); answerWrap.classList.add('portal-hidden'); document.getElementById('question').value='';
 });
+loadRememberedLogin();
 renderSession();
 </script>
 </body>
 </html>+Number(v||0).toFixed(5);
     const num=v=>Number(v||0).toLocaleString();
     box.innerHTML='<h3 style="font-family:Montserrat,sans-serif;font-size:1rem;margin-bottom:.35rem">Chat usage & estimated AI cost</h3>'+
-      '<div class="usage-meta">Model: '+escapeHtml(d.pricing?.model||'')+' · pricing used for estimate: $0.20/M input tokens and $0.30/M output tokens. Costs are approximate.</div>'+
+      '<div class="usage-meta">Model: '+escapeHtml(d.pricing?.model||'')+' · pricing estimate: $0.20/M input tokens and $0.30/M output tokens.</div>'+
       '<div style="overflow-x:auto"><table class="usage-table"><thead><tr><th>Vendor / user</th><th>Interactions</th><th>30 days</th><th>Tokens total</th><th>Est. cost total</th><th>Est. cost 30d</th><th>Last activity</th></tr></thead><tbody>'+
       rows.map(u=>'<tr><td><strong>'+escapeHtml(u.vendor_key||'')+'</strong><br>'+escapeHtml(u.display_name||u.email)+'<br><span class="usage-meta">'+escapeHtml(u.email)+'</span></td><td>'+num(u.interactions_all)+'</td><td>'+num(u.interactions_30d)+'</td><td>'+num(u.tokens_all)+'</td><td>'+money(u.cost_all_usd)+'</td><td>'+money(u.cost_30d_usd)+'</td><td>'+(u.last_interaction_at?escapeHtml(u.last_interaction_at):'—')+'</td></tr>').join('')+
       '</tbody></table></div>';
   }catch(err){box.innerHTML='<div class="portal-status portal-error">'+escapeHtml(err.message)+'</div>';}
 }
-
 document.getElementById('admin-create-form').addEventListener('submit',async(e)=>{
   e.preventDefault();
   const status=document.getElementById('admin-status'),created=document.getElementById('admin-created');
