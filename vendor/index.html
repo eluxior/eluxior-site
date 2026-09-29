@@ -27,8 +27,13 @@
     .portal-actions{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
     .portal-status{font-size:.87rem;color:#666}
     .portal-error{color:#a12b2b}
-    .portal-answer{margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid #ececf1;white-space:pre-wrap;line-height:1.65}
-    .portal-source{margin-top:.9rem;font-size:.8rem;color:#666}
+    .portal-answer{margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid #ececf1;line-height:1.65}
+    .portal-answer p{margin:.55rem 0}
+    .portal-answer ul{margin:.45rem 0 .8rem 1.25rem;padding:0}
+    .portal-answer li{margin:.28rem 0}
+    .portal-answer .answer-heading{font-family:"Montserrat",sans-serif;font-weight:700;margin-top:.9rem}
+    .portal-source{margin-top:.9rem;font-size:.8rem;color:#666;line-height:1.55}
+
     .portal-hidden{display:none}
     .portal-user{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1.2rem;padding:.75rem 0;border-bottom:1px solid #ececf1}
     .portal-user strong{font-family:"Montserrat",sans-serif;font-size:.92rem}
@@ -223,8 +228,8 @@ chatForm.addEventListener('submit',async(e)=>{
     const d=await r.json();
     if(r.status===401){setSession(null);throw new Error('Your session has expired. Please sign in again.');}
     answerWrap.classList.remove('portal-hidden');
-    if(!r.ok){answer.textContent=d.error||'Unable to answer.';answer.className='portal-answer portal-error';source.textContent='';}
-    else{answer.className='portal-answer';answer.textContent=d.answer;const s=d.sources&&d.sources[0];source.textContent=s?('Source: '+s.title+(s.section?' · '+s.section:'')+(s.page?' · page '+s.page:'')):'';}
+    if(!r.ok){answer.textContent=d.error||'Unable to answer.';answer.className='portal-answer portal-error';source.innerHTML='';}
+    else{answer.className='portal-answer';answer.innerHTML=formatAnswerMarkdown(d.answer);source.innerHTML=formatSources(d.sources);}
     chatStatus.textContent='';
   }catch(err){chatStatus.textContent=err.message;chatStatus.className='portal-status portal-error';}
 });
@@ -235,6 +240,38 @@ async function adminApi(path,body){
   const d=await r.json(); if(!r.ok)throw new Error(d.error||'Admin operation failed.'); return d;
 }
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function formatAnswerMarkdown(v){
+  const lines=escapeHtml(v||'').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').split(/\r?\n/);
+  let html='',inList=false;
+  const closeList=()=>{if(inList){html+='</ul>';inList=false;}};
+  for(const raw of lines){
+    const line=raw.trim();
+    if(!line){closeList();continue;}
+    if(/^[-*]\s+/.test(line)){
+      if(!inList){html+='<ul>';inList=true;}
+      html+='<li>'+line.replace(/^[-*]\s+/,'')+'</li>';
+      continue;
+    }
+    closeList();
+    if(/^<strong>[^<]+<\/strong>$/.test(line)) html+='<div class="answer-heading">'+line+'</div>';
+    else html+='<p>'+line+'</p>';
+  }
+  closeList();
+  return html;
+}
+function formatSources(items){
+  const seen=new Set(),rows=[];
+  for(const s of (items||[])){
+    const key=[s.source_key,s.section,s.page].join('|');
+    if(seen.has(key))continue; seen.add(key);
+    let label=s.title||s.source_key||'Approved source';
+    if(s.section)label+=' · '+s.section;
+    if(s.page)label+=' · page '+s.page;
+    rows.push(escapeHtml(label));
+    if(rows.length>=3)break;
+  }
+  return rows.length?'<strong>Sources</strong><br>'+rows.map(x=>'• '+x).join('<br>'):'';
+}
 async function loadAdminUsers(){
   const box=document.getElementById('admin-users');
   try{
