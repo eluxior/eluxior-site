@@ -46,7 +46,51 @@
     .portal-back{color:#e4e8ff;text-decoration:none;font-size:.88rem}
     .portal-back:hover{text-decoration:underline}
     @media(max-width:600px){.portal-hero{padding:3rem 0}.portal-section{padding-top:2rem}.portal-card{padding:1.35rem 1.2rem}}
-  </style>
+  
+/* Admin dashboard — responsive, accessible, scoped to administrator */
+#admin-card{max-width:none;width:100%;padding:2rem;border:1px solid #e5e9ef;box-shadow:0 12px 36px rgba(20,35,60,.07)}
+.portal-grid:has(#admin-card:not(.portal-hidden)){max-width:1160px}
+#admin-card h2{font-size:1.6rem;letter-spacing:-.025em;color:#17243b}
+#admin-card .portal-note{max-width:760px;line-height:1.6}
+#admin-card .admin-section{background:#fff;border:1px solid #e4e8ee;border-radius:14px;padding:1.3rem;margin-top:1.35rem}
+#admin-card .admin-section h3{font-family:Montserrat,sans-serif;font-size:1.08rem;margin:0 0 .7rem;color:#18263b}
+#admin-card .admin-section-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+#admin-card .admin-subtitle{font-size:.86rem;color:#667085}
+#admin-card #admin-create-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;align-items:end}
+#admin-card #admin-create-form .portal-actions{grid-column:1/-1}
+#admin-card #admin-create-form input{min-width:0}
+#admin-card .admin-company{border:1px solid #e5e9ef;border-radius:12px;margin:0 0 .8rem;overflow:hidden}
+#admin-card .admin-company summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:1rem 1.15rem;background:#f6f8fb;color:#1b2a40;font-weight:700}
+#admin-card .admin-company summary::-webkit-details-marker{display:none}
+#admin-card .admin-company summary:after{content:'⌄';font-size:1.1rem;color:#64748b}
+#admin-card .admin-company[open] summary:after{content:'⌃'}
+#admin-card .admin-count{font-size:.78rem;font-weight:600;background:#e9eef6;border-radius:999px;padding:.2rem .6rem;margin-left:.6rem}
+#admin-card .admin-contact{padding:1rem 1.15rem;border-top:1px solid #edf0f4;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+#admin-card .admin-contact-name{font-weight:700;color:#202d40}
+#admin-card .admin-contact-email{font-size:.85rem;color:#667085;overflow-wrap:anywhere;margin-top:.25rem}
+#admin-card .admin-status-pill{font-size:.74rem;font-weight:700;border-radius:999px;padding:.2rem .55rem;background:#e9f7ef;color:#19653d;margin-left:.45rem}
+#admin-card .admin-status-pill.off{background:#f3f4f6;color:#667085}
+#admin-card .admin-contact .portal-actions{margin:0;gap:.5rem}
+#admin-card .admin-contact .btn{font-size:.78rem;padding:.55rem .85rem;border-radius:8px}
+#admin-card .admin-contact .admin-active{background:#fff;color:#8a3030;border:1px solid #e9c6c6}
+#admin-card .admin-contact .admin-active[data-active="1"]{color:#16603a;border-color:#b8dec7}
+#admin-card .usage-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem;margin:1rem 0}
+#admin-card .usage-kpi{border:1px solid #e5e9ef;background:#f8fafc;border-radius:11px;padding:1rem}
+#admin-card .usage-kpi span{display:block;font-size:.78rem;color:#667085}
+#admin-card .usage-kpi strong{display:block;font-size:1.35rem;margin-top:.35rem;color:#18263b;font-variant-numeric:tabular-nums}
+#admin-card .usage-scroll{overflow-x:auto;border:1px solid #e5e9ef;border-radius:12px}
+#admin-card .usage-table{width:100%;min-width:780px;border-collapse:collapse;font-size:.85rem}
+#admin-card .usage-table th{background:#f3f6fa;color:#475569;text-align:right;font-size:.74rem;letter-spacing:.02em;padding:.85rem .8rem;white-space:nowrap}
+#admin-card .usage-table th:first-child,#admin-card .usage-table td:first-child{text-align:left}
+#admin-card .usage-table td{padding:.85rem .8rem;border-top:1px solid #edf0f4;text-align:right;vertical-align:middle;font-variant-numeric:tabular-nums}
+#admin-card .usage-table tbody tr:hover{background:#fafbfd}
+#admin-card .usage-table .usage-meta{font-size:.76rem;color:#667085;overflow-wrap:anywhere}
+#admin-card .usage-table .usage-identity{max-width:280px}
+#admin-card .admin-empty{color:#667085;padding:1.3rem;background:#f8fafc;border-radius:10px}
+@media(max-width:800px){#admin-card{padding:1.1rem}#admin-card #admin-create-form{grid-template-columns:1fr}#admin-card .usage-summary{grid-template-columns:repeat(2,minmax(0,1fr))}#admin-card .admin-contact{align-items:flex-start}#admin-card .admin-contact .portal-actions{width:100%}}
+@media(max-width:480px){#admin-card .usage-summary{grid-template-columns:1fr 1fr}#admin-card .usage-kpi strong{font-size:1.05rem}}
+
+</style>
 </head>
 <body>
   <header class="site-header">
@@ -131,7 +175,7 @@
         <div id="admin-card" class="portal-card portal-hidden">
           <h2>Vendor account administration</h2>
           <p class="portal-note">Visible only to ELUXIOR administrators. Create vendor accounts, reset temporary passwords and enable or disable access.</p>
-          <form id="admin-create-form" class="portal-form">
+          <div class="admin-section"><h3>Create a vendor account</h3><form id="admin-create-form" class="portal-form">
             <label>Vendor / company key<input id="admin-vendor-key" type="text" placeholder="OLIVEART" required /></label>
             <label>Display name<input id="admin-display-name" type="text" placeholder="Marwa — OliveArt" required /></label>
             <label>Email<input id="admin-email" type="email" required /></label>
@@ -140,9 +184,9 @@
               <span id="admin-status" class="portal-status"></span>
             </div>
           </form>
-          <div id="admin-created" class="portal-answer portal-hidden"></div>
-          <div id="admin-users" style="margin-top:1.25rem"></div>
-          <div id="admin-usage" style="margin-top:1.6rem"></div>
+          <div id="admin-created" class="portal-answer portal-hidden"></div></div>
+          <div id="admin-users" class="admin-section"></div>
+          <div id="admin-usage" class="admin-section"></div>
         </div>
 
         <p class="portal-note">Do not enter passwords, banking credentials, secret keys or other confidential authentication information into the question box. If the portal cannot ground an answer in an approved source, contact ELUXIOR directly.</p>
@@ -282,18 +326,18 @@ async function loadAdminUsers(){
       (groups[company]||(groups[company]=[])).push(u);
     });
     const ordered=Object.keys(groups).sort((a,b)=>a==='ELUXIOR'?-1:b==='ELUXIOR'?1:a.localeCompare(b));
-    box.innerHTML='<h3 style="font-family:Montserrat,sans-serif;font-size:1rem">Vendor companies</h3>'+ordered.map(company=>{
+    box.innerHTML='<div class="admin-section-head"><div><h3>Vendor companies</h3><div class="admin-subtitle">Manage access by company. Changes take effect immediately.</div></div><span class="admin-count">'+d.users.length+' accounts</span></div>'+(ordered.length?ordered.map(company=>{
       const contacts=groups[company].map(u=>{
         const status=u.active?'Active':'Disabled';
-        const pwd=u.must_change_password?' · password change pending':'';
-        const actions=u.role==='admin'?'':`<div class="portal-actions" style="margin-top:.55rem">
+        const pwd=u.must_change_password?' · Password change pending':'';
+        const actions=u.role==='admin'?'':`<div class="portal-actions">
           <button class="btn btn-primary admin-reset" data-email="${escapeHtml(u.email)}" type="button">Reset password</button>
-          <button class="btn btn-primary admin-active" data-email="${escapeHtml(u.email)}" data-active="${u.active?0:1}" type="button">${u.active?'Disable':'Enable'}</button>
+          <button class="btn admin-active" data-email="${escapeHtml(u.email)}" data-active="${u.active?0:1}" type="button">${u.active?'Disable':'Enable'}</button>
         </div>`;
-        return `<div style="padding:.7rem 0 .85rem 1rem;border-top:1px solid #ececf1"><strong>${escapeHtml(u.display_name||u.email)}</strong><div class="portal-status">${escapeHtml(u.email)} · ${status}${pwd}</div>${actions}</div>`;
+        return `<div class="admin-contact"><div><div class="admin-contact-name">${escapeHtml(u.display_name||u.email)}<span class="admin-status-pill ${u.active?'':'off'}">${status}</span></div><div class="admin-contact-email">${escapeHtml(u.email)}${pwd}</div></div>${actions}</div>`;
       }).join('');
-      return `<section style="margin-top:1rem"><h4 style="font-family:Montserrat,sans-serif;font-size:1.05rem;margin:0 0 .35rem;color:var(--color-deep-blue)">${escapeHtml(company)}</h4>${contacts}</section>`;
-    }).join('');
+      return `<details class="admin-company" ${company==='ELUXIOR'?'open':''}><summary><span>${escapeHtml(company)}<span class="admin-count">${groups[company].length}</span></span></summary>${contacts}</details>`;
+    }).join(''):'<div class="admin-empty">No vendor accounts yet.</div>');
     box.querySelectorAll('.admin-reset').forEach(btn=>btn.addEventListener('click',()=>resetVendorPassword(btn.dataset.email)));
     box.querySelectorAll('.admin-active').forEach(btn=>btn.addEventListener('click',()=>setVendorActive(btn.dataset.email,btn.dataset.active==='1')));
   }catch(err){box.innerHTML='<div class="portal-status portal-error">'+escapeHtml(err.message)+'</div>';}
@@ -306,11 +350,13 @@ async function loadAdminUsage(){
     const rows=d.users||[];
     const money=v=>'USD '+Number(v||0).toFixed(5);
     const num=v=>Number(v||0).toLocaleString();
-    box.innerHTML='<h3 style="font-family:Montserrat,sans-serif;font-size:1rem;margin-bottom:.35rem">Chat usage & estimated AI cost</h3>'+
-      '<div class="usage-meta">Model: '+escapeHtml(d.pricing?.model||'')+' · estimate based on current input/output token rates.</div>'+
-      '<div style="overflow-x:auto"><table class="usage-table"><thead><tr><th>Vendor / user</th><th>Interactions</th><th>30 days</th><th>Tokens total</th><th>Est. cost total</th><th>Est. cost 30d</th><th>Last activity</th></tr></thead><tbody>'+
-      rows.map(u=>'<tr><td><strong>'+escapeHtml(u.vendor_key||'')+'</strong><br>'+escapeHtml(u.display_name||u.email)+'<br><span class="usage-meta">'+escapeHtml(u.email)+'</span></td><td>'+num(u.interactions_all)+'</td><td>'+num(u.interactions_30d)+'</td><td>'+num(u.tokens_all)+'</td><td>'+money(u.cost_all_usd)+'</td><td>'+money(u.cost_30d_usd)+'</td><td>'+(u.last_interaction_at?escapeHtml(u.last_interaction_at):'—')+'</td></tr>').join('')+
-      '</tbody></table></div>';
+    const totals=rows.reduce((a,u)=>({interactions:a.interactions+Number(u.interactions_all||0),recent:a.recent+Number(u.interactions_30d||0),tokens:a.tokens+Number(u.tokens_all||0),cost:a.cost+Number(u.cost_all_usd||0)}),{interactions:0,recent:0,tokens:0,cost:0});
+    const kpi=(label,value)=>'<div class="usage-kpi"><span>'+label+'</span><strong>'+value+'</strong></div>';
+    box.innerHTML='<div class="admin-section-head"><div><h3>AI chat usage & cost</h3><div class="admin-subtitle">Estimated usage by vendor · Model: '+escapeHtml(d.pricing?.model||'Not specified')+'</div></div></div>'+
+      '<div class="usage-summary">'+kpi('Total interactions',num(totals.interactions))+kpi('Last 30 days',num(totals.recent))+kpi('Tokens used',num(totals.tokens))+kpi('Estimated total cost',money(totals.cost))+'</div>'+
+      (rows.length?'<div class="usage-scroll"><table class="usage-table"><thead><tr><th>Vendor / user</th><th>All chats</th><th>Last 30d</th><th>Tokens</th><th>Total cost</th><th>30d cost</th><th>Last activity</th></tr></thead><tbody>'+
+      rows.map(u=>'<tr><td class="usage-identity"><strong>'+escapeHtml(u.vendor_key||'ELUXIOR')+'</strong><br>'+escapeHtml(u.display_name||u.email)+'<br><span class="usage-meta">'+escapeHtml(u.email)+'</span></td><td>'+num(u.interactions_all)+'</td><td>'+num(u.interactions_30d)+'</td><td>'+num(u.tokens_all)+'</td><td>'+money(u.cost_all_usd)+'</td><td>'+money(u.cost_30d_usd)+'</td><td>'+(u.last_interaction_at?escapeHtml(u.last_interaction_at):'—')+'</td></tr>').join('')+
+      '</tbody></table></div>':'<div class="admin-empty">No chat activity recorded yet.</div>');
   }catch(err){box.innerHTML='<div class="portal-status portal-error">'+escapeHtml(err.message)+'</div>';}
 }
 document.getElementById('admin-create-form').addEventListener('submit',async(e)=>{
