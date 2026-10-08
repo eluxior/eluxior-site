@@ -302,7 +302,7 @@ chatForm.addEventListener('submit',async(e)=>{
   e.preventDefault(); const token=sessionStorage.getItem('eluxiorVendorToken'); if(!token){setSession(null);return;}
   const q=document.getElementById('question').value.trim(); if(q.length<4)return;
   const division=document.getElementById('tjx-division').value;
-  const scopedQuestion=division?'For '+division+' only: '+q+' Please identify exact approved source section and page; distinguish mandatory rules from advice, and explicitly say if the source is insufficient.':q+' Please identify exact approved source section and page, and explicitly say if the source is insufficient.';
+  const scopedQuestion=division?division+': '+q:q;
   chatStatus.textContent='Checking approved sources…'; chatStatus.className='portal-status'; answerWrap.classList.add('portal-hidden');
   try{
     const r=await fetch(API+'/v1/chat',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+token},body:JSON.stringify({question:scopedQuestion})});
