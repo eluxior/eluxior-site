@@ -90,6 +90,29 @@
 @media(max-width:800px){#admin-card{padding:1.1rem}#admin-card #admin-create-form{grid-template-columns:1fr}#admin-card .usage-summary{grid-template-columns:repeat(2,minmax(0,1fr))}#admin-card .admin-contact{align-items:flex-start}#admin-card .admin-contact .portal-actions{width:100%}}
 @media(max-width:480px){#admin-card .usage-summary{grid-template-columns:1fr 1fr}#admin-card .usage-kpi strong{font-size:1.05rem}}
 
+
+/* Vendor assistant: guided search and source traceability */
+#chat-card{max-width:900px;width:100%}
+.portal-grid:has(#chat-card:not(.portal-hidden)){max-width:1160px}
+.vendor-assistant-intro{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}
+.vendor-division{margin:1.15rem 0 1.25rem}
+.vendor-division label{font-weight:700;font-size:.85rem;display:block;margin-bottom:.45rem}
+.vendor-division select{width:100%;border:1px solid #d7dce6;border-radius:.7rem;padding:.75rem;font:inherit;background:white;color:#18263b}
+.vendor-topics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem;margin:1rem 0 1.4rem}
+.vendor-topic{border:1px solid #e0e6ef;background:#f8fafc;border-radius:11px;text-align:left;padding:1rem;cursor:pointer;color:#1b2b42;font:inherit;line-height:1.4}
+.vendor-topic:hover,.vendor-topic:focus-visible{border-color:#d47925;background:#fffaf5;outline-offset:2px}
+.vendor-topic small{display:block;color:#667085;font-size:.74rem;font-weight:700;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.04em}
+.vendor-topic span{font-size:.87rem}
+.vendor-guidance{border-left:3px solid #e88b25;background:#fffaf3;padding:.85rem 1rem;border-radius:0 8px 8px 0;font-size:.83rem;color:#59472d;margin:.7rem 0 1.15rem}
+.portal-source{border-top:1px solid #e5e9ef;margin-top:1rem;padding-top:1rem}
+.portal-source-list{display:grid;gap:.6rem;margin-top:.65rem}
+.portal-source-item{background:#f7f9fc;border:1px solid #e3e8ef;border-radius:10px;padding:.85rem 1rem}
+.portal-source-title{font-weight:700;color:#22334a;font-size:.85rem}
+.portal-source-meta{font-size:.79rem;color:#667085;margin-top:.25rem}
+.portal-source-link{display:inline-block;margin-top:.45rem;color:#174e90;font-weight:700;text-decoration:underline}
+.portal-source-warning{font-size:.78rem;color:#765b30;margin-top:.65rem}
+@media(max-width:650px){.vendor-topics{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -159,6 +182,17 @@
           <p class="portal-note">The portal answers only when an approved ELUXIOR source supports the response. The current PO and later authorised TJX instructions prevail.</p>
           <p class="portal-note"><strong>Please submit your questions in English.</strong> This helps the portal identify the correct ELUXIOR guidance and provide the most reliable answer.</p>
           <p class="portal-note">If the portal cannot provide a grounded answer, contact <a class="portal-link" href="mailto:admin@eluxiorsourcing.com">admin@eluxiorsourcing.com</a>.</p>
+          <div class="vendor-division"><label for="tjx-division">Your TJX division</label><select id="tjx-division" aria-label="TJX division"><option value="">Select division (recommended)</option><option value="TJX USA">TJX USA</option><option value="TJX Canada">TJX Canada</option><option value="TK Maxx Europe">TK Maxx Europe</option><option value="TJX Australia">TJX Australia</option></select></div>
+          <h3 style="font-size:1rem;margin:.5rem 0">Common questions</h3>
+          <div class="vendor-topics" id="vendor-topics">
+            <button class="vendor-topic" type="button" data-question="When must I book my shipment and what should I do if the freight forwarder is late?"><small>Shipping</small><span>Booking deadlines and forwarder delays</span></button>
+            <button class="vendor-topic" type="button" data-question="May I propose consolidation of small quantities allocated to several USA distribution centers?"><small>Distribution</small><span>Small DC allocations and Distro changes</span></button>
+            <button class="vendor-topic" type="button" data-question="What are the Store Ready, Nest Code and carton packing requirements for my order?"><small>Packing</small><span>Store Ready, Nest Code and cartons</span></button>
+            <button class="vendor-topic" type="button" data-question="Which commercial invoices, packing lists and shipment documents must I prepare?"><small>Documentation</small><span>Invoices and packing lists</span></button>
+            <button class="vendor-topic" type="button" data-question="What are the labeling and compliance requirements for glazed decorative ceramics?"><small>Compliance</small><span>Glazed ceramics and labeling</span></button>
+            <button class="vendor-topic" type="button" data-question="What samples must I retain for each SKU after production and shipment?"><small>Samples</small><span>Sample retention</span></button>
+          </div>
+          <div class="vendor-guidance"><strong>Official rules vs recommendations:</strong> This assistant explains approved documents. Do not change a PO, Distro, booking or packing instruction without the required official authorization. If a source does not support an answer, request clarification from ELUXIOR.</div>
           <form id="chat-form" class="portal-form">
             <label>Your question<textarea id="question" maxlength="1800" placeholder="Example: When should I create the VLA e-booking for TK Maxx Europe?" required></textarea></label>
             <div class="portal-actions">
@@ -213,6 +247,7 @@ document.querySelectorAll('.password-toggle').forEach((btn)=>{
   });
 });
 
+document.querySelectorAll('.vendor-topic').forEach(btn=>btn.addEventListener('click',()=>{const question=document.getElementById('question');question.value=btn.dataset.question;question.focus();question.scrollIntoView({behavior:'smooth',block:'center'});}));
 function setSession(token,user){
   if(token){sessionStorage.setItem('eluxiorVendorToken',token);sessionStorage.setItem('eluxiorVendorUser',JSON.stringify(user||{}));}
   else{sessionStorage.removeItem('eluxiorVendorToken');sessionStorage.removeItem('eluxiorVendorUser');}
@@ -266,9 +301,11 @@ passwordForm.addEventListener('submit',async(e)=>{
 chatForm.addEventListener('submit',async(e)=>{
   e.preventDefault(); const token=sessionStorage.getItem('eluxiorVendorToken'); if(!token){setSession(null);return;}
   const q=document.getElementById('question').value.trim(); if(q.length<4)return;
+  const division=document.getElementById('tjx-division').value;
+  const scopedQuestion=division?'For '+division+' only: '+q+' Please identify exact approved source section and page; distinguish mandatory rules from advice, and explicitly say if the source is insufficient.':q+' Please identify exact approved source section and page, and explicitly say if the source is insufficient.';
   chatStatus.textContent='Checking approved sources…'; chatStatus.className='portal-status'; answerWrap.classList.add('portal-hidden');
   try{
-    const r=await fetch(API+'/v1/chat',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+token},body:JSON.stringify({question:q})});
+    const r=await fetch(API+'/v1/chat',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+token},body:JSON.stringify({question:scopedQuestion})});
     const d=await r.json();
     if(r.status===401){setSession(null);throw new Error('Your session has expired. Please sign in again.');}
     answerWrap.classList.remove('portal-hidden');
@@ -305,16 +342,23 @@ function formatAnswerMarkdown(v){
 }
 function formatSources(items){
   const seen=new Set(),rows=[];
+  const official='https://drive.google.com/file/d/1JX3t4dSmAEXtagWptFHJszkrYQi7BM4v/view';
   for(const s of (items||[])){
     const key=[s.source_key,s.section,s.page].join('|');
-    if(seen.has(key))continue; seen.add(key);
+    if(seen.has(key))continue;seen.add(key);
     let label=s.title||s.source_key||'Approved source';
-    if(s.section)label+=' · '+s.section;
-    if(s.page)label+=' · page '+s.page;
-    rows.push(escapeHtml(label));
-    if(rows.length>=3)break;
+    const page=Number(s.page);
+    const hasPage=Number.isInteger(page)&&page>0&&page<2000;
+    const meta=[s.section?'Section '+escapeHtml(s.section):'',hasPage?'Page '+page:''].filter(Boolean).join(' · ');
+    const sourceId=String(s.source_key||'').toLowerCase();
+    const sourceTitle=String(s.title||'').toLowerCase();
+    const isOfficial=(sourceId.includes('eluxior')||sourceTitle.includes('eluxior'))&&(sourceId.includes('procedure')||sourceTitle.includes('procedure')||sourceTitle.includes('vendor edition'));
+    const href=isOfficial?official+(hasPage?'#page='+page:''):null;
+    rows.push('<div class="portal-source-item"><div class="portal-source-title">'+escapeHtml(label)+'</div>'+(meta?'<div class="portal-source-meta">'+meta+'</div>':'')+(href?'<a class="portal-source-link" target="_blank" rel="noopener noreferrer" href="'+href+'">Open official PDF'+(hasPage?' at page '+page:'')+' ↗</a>':'')+'</div>');
+    if(rows.length>=4)break;
   }
-  return rows.length?'<strong>Sources</strong><br>'+rows.map(x=>'• '+x).join('<br>'):'';
+  if(!rows.length)return '<div class="portal-source-warning">No source reference was returned. Do not treat the response as an official procedure without confirmation.</div>';
+  return '<strong>Approved sources returned</strong><div class="portal-source-list">'+rows.join('')+'</div><div class="portal-source-warning">Page links are based on the source metadata returned by the assistant. Confirm the quoted rule in the official document before taking action.</div>';
 }
 async function loadAdminUsers(){
   const box=document.getElementById('admin-users');
