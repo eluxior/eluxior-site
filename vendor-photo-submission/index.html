@@ -13,7 +13,7 @@ main{max-width:1100px;margin:0 auto;padding:38px 24px 70px}h1{font-size:clamp(27
 .steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:26px 0}.step{background:#fff;padding:25px;border:1px solid #dbe5ee;border-radius:14px;box-shadow:0 5px 18px #1428430a}.step h2{font-size:18px;margin:0 0 11px}.step p{font-size:14px;color:#465b71;margin:0}.num{display:inline-flex;justify-content:center;align-items:center;width:32px;height:32px;background:#e2eef8;border-radius:8px;color:#1b5a91;font-weight:800;margin-right:8px}.action{margin:28px 0;background:white;border:1px solid #dbe5ee;border-radius:14px;padding:25px}.action h2{font-size:21px;margin:0 0 8px}.muted{color:#546a80;font-size:14px}.pending{display:inline-block;background:#ebf0f5;color:#35516c;font-weight:750;padding:13px 19px;border-radius:8px;border:1px solid #cbd9e5;margin:10px 0}.field{display:flex;flex-direction:column;gap:5px;font-size:14px;font-weight:700;color:#244663}.field input{font:inherit;border:1px solid #bccfdf;border-radius:8px;padding:12px;color:#173152;max-width:390px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0}.hint{background:#fff8e9;border:1px solid #edd5a6;border-radius:9px;padding:12px 16px;font-size:13px;color:#795b25}.links{margin-top:18px;display:flex;gap:15px;flex-wrap:wrap}.links a{color:#1e5b91;font-weight:650}.small{font-size:13px;color:#597087}
 @media(max-width:730px){.steps,.form-grid{grid-template-columns:1fr}.head{align-items:flex-start}main{padding:27px 16px 55px}.step{padding:21px}}
 </style>
-</head>
+<meta name="referrer" content="no-referrer"></head>
 <body>
 <header><div class="head"><div class="brand">ELUXIOR</div><nav aria-label="Main navigation"><a href="/">Home</a><a href="/vendor-guidelines/">Vendor Guidelines</a><a href="/vendor/">Vendor AI Chat</a><a href="https://buyer.eluxiorsourcing.com/">Buyers</a></nav></div></header>
 <main>
@@ -25,20 +25,27 @@ main{max-width:1100px;margin:0 auto;padding:38px 24px 70px}h1{font-size:clamp(27
  <div class="step"><h2><span class="num">1</span>Download</h2><p>Find the relevant PO in your ELUXIOR Digest A and download its PO Photo Card. Check the preprinted vendor name and PO number. Do not use the blank Showroom Product Card for a PO.</p></div>
  <div class="step"><h2><span class="num">2</span>Write</h2><p>Write the exact <strong>STYLE NUMBER</strong> and <strong>DATE OF PHOTO</strong> clearly and in large characters on the printed card. Nothing else is needed.</p></div>
  <div class="step"><h2><span class="num">3</span>Photograph</h2><p>Photograph the <strong>complete product with the whole card visible</strong>. The QR and handwritten details must be legible. One photo per distinct SKU per PO; different sizes/colours/finishes require separate photos. Keep each photo <strong>under 2 MB</strong> without sacrificing readability.</p></div>
- <div class="step"><h2><span class="num">4</span>Upload</h2><p>The final upload system will save the photos in ELUXIOR Google Drive and automatically check the PO/Style Number. <strong>Until that integration is ready</strong>, use the WeTransfer Request below, one PO per transfer.</p></div>
+ <div class="step"><h2><span class="num">4</span>Upload</h2><p>Open the secure PO-specific link supplied by ELUXIOR. Check the vendor and PO shown below, then upload your photographs. No Google account is needed.</p></div>
 </section>
 <section class="action" aria-labelledby="upload-title">
  <div class="eyebrow">ELUXIOR Photo Intake</div>
  <h2 id="upload-title">Send your PO photographs</h2>
- <p class="muted">Our secure direct upload to ELUXIOR Google Drive is being implemented. For now, submit through the existing verified WeTransfer Request. This is the <strong>current active submission method</strong>.</p>
+ <p>Use your secure PO-specific upload link. Vendor and PO details are filled automatically and cannot be changed here.</p>
+ <p id="intake-status" role="status" aria-live="polite">Checking your upload link…</p>
  <div class="form-grid">
-   <label class="field" for="vendor-name">Vendor name <input id="vendor-name" name="vendor" autocomplete="organization" placeholder="Your company name" maxlength="120"></label>
-   <label class="field" for="po-number">Purchase Order number <input id="po-number" name="po" inputmode="numeric" placeholder="e.g. 163011" maxlength="30"></label>
+ <label class="field">Vendor name <input id="vendor-name" readonly></label>
+ <label class="field">Purchase Order number <input id="po-number" readonly></label>
  </div>
- <p class="small">Check these details against the preprinted PO Photo Card. Your card QR will identify the vendor and PO automatically when the direct-upload system is activated.</p>
- <div class="hint"><strong>Temporary submission route:</strong> WeTransfer cannot automatically guarantee that files have been linked to the correct PO. Make sure the card is readable in <strong>every photograph</strong>. ELUXIOR will review received photos before matching them.</div>
- <a class="pending" style="background:#225d95;color:white;text-decoration:none;border-color:#225d95" href="#upload-title" target="_blank" rel="noopener noreferrer" aria-label="Open official ELUXIOR WeTransfer Request">Secure upload activation in progress</a>
- <p class="small">Keep the original files. One PO per transfer. The transfer confirmation is not product approval. If the link expires, contact ELUXIOR.</p>
+ <form id="photo-form" hidden>
+ <label class="field" for="photos">Select photographs (JPEG, PNG or WebP, up to 8 MB per original)
+ <input id="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple required></label>
+ <p class="small">Photos above 2 MB are optimized before upload. Check that the card remains readable in the preview. Keep your original files.</p>
+ <div id="previews" style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0"></div>
+ <button class="pending" id="upload-button" type="submit">Upload photographs</button>
+ <progress id="upload-progress" value="0" max="100" hidden style="width:100%"></progress>
+ </form>
+ <ol id="upload-results" aria-live="polite"></ol>
+ <p class="hint">Confirmation means received pending review. ELUXIOR still needs to check the card, product and Style Number. Keep the receipt IDs below. Retry failed files only.</p>
  <div class="links">
  <a href="/vendor-guidelines/">Vendor Guidelines</a>
  <a href="/vendor-guidelines/paper-photo-marking.pdf">Blank Showroom Product Card (A5 PDF)</a>
@@ -48,4 +55,4 @@ main{max-width:1100px;margin:0 auto;padding:38px 24px 70px}h1{font-size:clamp(27
 </section>
 <p class="small">Planned AI matching (not yet active): ELUXIOR will use the QR to identify the vendor/PO and read the Style Number. Unclear or conflicting photographs require manual review. The current PO and official TJX instructions always take precedence for packing, compliance and shipping.</p>
 </main>
-</body></html>
+<script src="./intake.js" defer></script></body></html>
