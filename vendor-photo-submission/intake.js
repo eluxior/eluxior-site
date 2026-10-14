@@ -80,5 +80,18 @@ form.addEventListener('submit', async e => {
     document.getElementById('vendor-name').value = data.vendor;
     document.getElementById('po-number').value = data.po;
     statusEl.textContent = 'Link verified. Uploads will be received for this vendor and PO only.'; form.hidden = false;
+    const cardButton = document.createElement('button'); cardButton.type = 'button'; cardButton.className = 'pending'; cardButton.textContent = 'Download / print this PO Photo Card';
+    form.before(cardButton);
+    cardButton.addEventListener('click', async () => {
+      cardButton.disabled = true;
+      try {
+        const response = await fetch(API + '/v1/photo-intake/card', {headers:{'x-po-upload-token':token},cache:'no-store',referrerPolicy:'no-referrer'});
+        if(!response.ok) throw Error('Card unavailable. Contact ELUXIOR.');
+        const blob = await response.blob(), url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.download = 'ELUXIOR-PO-Photo-Card.html'; link.click();
+        setTimeout(()=>URL.revokeObjectURL(url),60000);
+      } catch(error) { statusEl.textContent = error.message; }
+      cardButton.disabled = false;
+    });
   } catch(error) { statusEl.textContent = error.message + '. Contact ELUXIOR for a new link.'; }
 })();
