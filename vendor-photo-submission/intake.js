@@ -88,7 +88,7 @@ form.addEventListener('submit', async e => {
         const response = await fetch(API + '/v1/photo-intake/card', {headers:{'x-po-upload-token':token},cache:'no-store',referrerPolicy:'no-referrer'});
         if(!response.ok) throw Error('Card unavailable. Contact ELUXIOR.');
         const blob = await response.blob(), url = URL.createObjectURL(blob);
-        const link = document.createElement('a'); link.href = url; link.download = 'ELUXIOR-PO-Photo-Card.html'; link.click();
+        const link = document.createElement('a'); link.href = url; link.download = blob.type.includes('application/pdf') ? 'ELUXIOR-PO-' + String(data.po).replace(/[^0-9A-Za-z-]/g,'') + '-Photo-Card.pdf' : 'ELUXIOR-PO-Photo-Card.html'; link.click();
         setTimeout(()=>URL.revokeObjectURL(url),60000);
       } catch(error) { statusEl.textContent = error.message; }
       cardButton.disabled = false;
