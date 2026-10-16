@@ -43,7 +43,7 @@ main{max-width:1100px;margin:0 auto;padding:38px 24px 70px}h1{font-size:clamp(27
  <input id="scanned-card-reference" type="hidden">
  </div>
  <form id="photo-form" hidden>
- <label class="field" for="photos">Select photographs (JPEG, PNG or WebP, up to 8 MB per original)
+ <label class="field">Style Number (optional; one value per upload batch) <input id="style-number" type="text" maxlength="80" placeholder="Example: 123456"></label>\n <label class="field" for="photos">Select photographs (JPEG, PNG or WebP, up to 8 MB per original)
  <input id="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple required></label>
  <p class="small">Photos above 2 MB are optimized before upload. Check that the card remains readable in the preview. Keep your original files.</p>
  <div id="previews" style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0"></div>
