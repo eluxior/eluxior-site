@@ -11,6 +11,7 @@ const qrPanel = document.getElementById('qr-panel');
 const qrStatus = document.getElementById('qr-status');
 const scanButton = document.getElementById('scan-qr');
 const scannedReference = document.getElementById('scanned-card-reference');
+const styleNumberInput = document.getElementById('style-number');
 let verifiedCardReference = '';
 let currentContext = null;
 // Remove bearer capability from the address bar and referrer history immediately.
@@ -70,6 +71,8 @@ function send(blob) {
     xhr.setRequestHeader('content-type',blob.type);
     xhr.setRequestHeader('x-po-upload-token',token);
     if (verifiedCardReference) xhr.setRequestHeader('x-po-card-reference',verifiedCardReference);
+    const styleNumber = (styleNumberInput?.value || '').trim();
+    if (styleNumber) xhr.setRequestHeader('x-po-style-number', styleNumber);
     xhr.upload.onprogress = e => { if(e.lengthComputable) progress.value = 100*e.loaded/e.total; };
     xhr.onload = () => {
       let data; try { data = JSON.parse(xhr.responseText); } catch { reject(Error('Invalid server response')); return; }
