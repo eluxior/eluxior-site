@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>ELUXIOR Photo Review</title>
+<style>body{font:15px system-ui;margin:2rem;color:#153b59}button{margin:.25rem;padding:.45rem .7rem}input{padding:.5rem;width:28rem}table{border-collapse:collapse;width:100%;margin-top:1rem}td,th{border:1px solid #ccd6df;padding:.5rem;text-align:left}img{max-width:180px;max-height:160px}.muted{color:#667}</style>
+<h1>ELUXIOR Photo Review</h1><p class="muted">Admin-only review. OCR/SKU values are suggestions only; nothing is approved automatically.</p>
+<label>Admin bearer token <input id="token" type="password" autocomplete="off"></label> <button id="load">Load pending</button>
+<div id="msg"></div><table><thead><tr><th>Photo</th><th>PO / Vendor</th><th>Submitted Style Number</th><th>Decision</th></tr></thead><tbody id="rows"></tbody></table>
+<script>
+const api='https://eluxior-vendor-api.marco-eluxior.workers.dev';
+const token=()=>document.querySelector('#token').value.trim();
+const msg=t=>document.querySelector('#msg').textContent=t;
+async function load(){msg('Loading…');const r=await fetch(api+'/v1/admin/photo-review?status=requires_review',{headers:{Authorization:'Bearer '+token()}});if(!r.ok){msg('Access denied or request failed ('+r.status+').');return}const d=await r.json();const rows=document.querySelector('#rows');rows.innerHTML='';for(const x of d.items||[]){const tr=document.createElement('tr');const im=document.createElement('img');im.alt='private vendor photo';im.src=api+x.object_url;im.fetchPriority='low';im.onload=()=>{}; // image request needs bearer; replace with button below
+im.remove();const cell=document.createElement('td');const b=document.createElement('button');b.textContent='View private image';b.onclick=async()=>{const z=await fetch(api+x.object_url,{headers:{Authorization:'Bearer '+token()}});if(!z.ok)return alert('Image request failed');const u=URL.createObjectURL(await z.blob());const w=window.open();w.document.write('<img style="max-width:100%" src="'+u+'">')};cell.append(b);tr.append(cell);
+tr.insertAdjacentHTML('beforeend','<td>'+x.po+'<br>'+x.vendor+'</td><td>Manual entry is authoritative; OCR not active</td>');const dc=document.createElement('td');for(const v of ['approved','needs_review','rejected']){const q=document.createElement('button');q.textContent=v;q.onclick=()=>decide(x.id,v);dc.append(q)}tr.append(dc);rows.append(tr)}msg((d.items||[]).length+' pending photo(s).')}
+async function decide(id,decision){const r=await fetch(api+'/v1/admin/photo-review/decision',{method:'POST',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({id,decision})});if(!r.ok){alert('Decision failed ('+r.status+')');return}load()}
+document.querySelector('#load').onclick=load;
+</script>
