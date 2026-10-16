@@ -36,6 +36,12 @@ main{max-width:1100px;margin:0 auto;padding:38px 24px 70px}h1{font-size:clamp(27
  <label class="field">Vendor name <input id="vendor-name" readonly></label>
  <label class="field">Purchase Order number <input id="po-number" readonly></label>
  </div>
+ <div id="qr-panel" class="hint" hidden>
+ <strong>Optional QR verification</strong>
+ <p id="qr-status">You may scan the QR code on the printed PO Photo Card. Scanning is optional and never blocks photo upload.</p>
+ <button class="pending" id="scan-qr" type="button">Scan QR on PO Photo Card</button>
+ <input id="scanned-card-reference" type="hidden">
+ </div>
  <form id="photo-form" hidden>
  <label class="field" for="photos">Select photographs (JPEG, PNG or WebP, up to 8 MB per original)
  <input id="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple required></label>
@@ -53,6 +59,6 @@ main{max-width:1100px;margin:0 auto;padding:38px 24px 70px}h1{font-size:clamp(27
  <a href="https://drive.google.com/file/d/1JX3t4dSmAEXtagWptFHJszkrYQi7BM4v/view" target="_blank" rel="noopener">Updated Vendor Procedures Handbook</a>
  </div>
 </section>
-<p class="small">Planned AI matching (not yet active): ELUXIOR will use the QR to identify the vendor/PO and read the Style Number. Unclear or conflicting photographs require manual review. The current PO and official TJX instructions always take precedence for packing, compliance and shipping.</p>
+<p class="small">QR verification is optional and does not block upload. Style Number recognition and SKU matching remain advisory/manual-review features; unclear or conflicting photographs require manual review. The current PO and official TJX instructions always take precedence for packing, compliance and shipping.</p>
 </main>
 <script src="./intake.js?v=20261015-pdf" defer></script></body></html>
