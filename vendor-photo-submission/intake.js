@@ -30,6 +30,7 @@ function renderPreviews() {
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'remove-photo';
     remove.textContent = 'Remove photo'; remove.setAttribute('aria-label', 'Remove ' + file.name);
     remove.addEventListener('click', () => {
+      if (button.disabled) return;
       const remaining = Array.from(input.files).filter((_, i) => i !== index);
       const transfer = new DataTransfer(); remaining.forEach(item => transfer.items.add(item));
       input.files = transfer.files;
@@ -111,7 +112,7 @@ form.addEventListener('submit', async e => {
     statusEl.textContent = 'Select 1 to 5 photos of the same Style Number before uploading.';
     return;
   }
-  button.disabled = true; input.disabled = true; progress.hidden = false;
+  button.disabled = true; input.disabled = true; styleNumberInput.disabled = true; progress.hidden = false;
   let received = 0, failed = 0;
   for (const file of files) {
     const item = document.createElement('li'); results.append(item); progress.value = 0;
@@ -123,7 +124,7 @@ form.addEventListener('submit', async e => {
     } catch (error) { failed++; item.textContent = file.name + ': FAILED — ' + error.message; }
   }
   statusEl.textContent = received + ' received; ' + failed + ' failed. Select only failed files to retry.';
-  input.value = ''; renderPreviews(); button.disabled = false; input.disabled = false; progress.hidden = true;
+  input.value = ''; renderPreviews(); button.disabled = false; input.disabled = false; styleNumberInput.disabled = false; progress.hidden = true;
 });
 (async () => {
   if (!token) { statusEl.textContent = 'Open the secure PO-specific link supplied by ELUXIOR. If you do not have one, contact ELUXIOR.'; return; }
