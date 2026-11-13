@@ -7,18 +7,13 @@ const results = document.getElementById('upload-results');
 const button = document.getElementById('upload-button');
 const progress = document.getElementById('upload-progress');
 const token = new URL(location.href).searchParams.get('token') || '';
-const qrPanel = document.getElementById('qr-panel');
-const qrStatus = document.getElementById('qr-status');
-const scanButton = document.getElementById('scan-qr');
-const scannedReference = document.getElementById('scanned-card-reference');
 const styleNumberInput = document.getElementById('style-number');
-let verifiedCardReference = '';
 let currentContext = null;
 // Remove bearer capability from the address bar and referrer history immediately.
 history.replaceState(null, '', location.pathname);
 const limit = 2 * 1024 * 1024;
 const urls = [];
-const maxBatch = 5;
+const maxBatch = 1;
 function renderPreviews() {
   urls.splice(0).forEach(URL.revokeObjectURL);
   const previews = document.getElementById('previews'); previews.replaceChildren();
@@ -43,7 +38,7 @@ function renderPreviews() {
 input.addEventListener('change', () => {
   if (input.files.length > maxBatch) {
     input.value = ''; renderPreviews();
-    statusEl.textContent = 'Select no more than 5 photos of the same Style Number per batch. Nothing was uploaded.';
+    statusEl.textContent = 'Select one photograph at a time. Nothing was uploaded.';
     return;
   }
   renderPreviews();
@@ -67,33 +62,15 @@ async function optimize(file) {
     throw Error('Cannot optimize below 2 MB without stronger compression. Export a smaller clear image and retry.');
   } finally { bitmap.close(); }
 }
-async function scanQr() {
-  if (!('BarcodeDetector' in window)) { qrStatus.textContent = 'QR scanning is not supported by this browser. Upload normally; scanning is optional.'; return; }
-  const detector = new BarcodeDetector({formats:['qr_code']});
-  const picker = document.createElement('input'); picker.type='file'; picker.accept='image/*'; picker.capture='environment';
-  picker.onchange = async () => {
-    const file = picker.files?.[0]; if (!file) return;
-    try {
-      const codes = await detector.detect(await createImageBitmap(file));
-      const value = codes.find(c => String(c.rawValue||'').startsWith('eluxior:po-photo:v2:'))?.rawValue || '';
-      const ref = value.replace('eluxior:po-photo:v2:','');
-      if (!ref) throw Error('No ELUXIOR PO QR code found in this image.');
-      if (currentContext?.card_reference && ref.toLowerCase() !== String(currentContext.card_reference).toLowerCase()) throw Error('This QR code belongs to a different PO Photo Card.');
-      verifiedCardReference = ref; scannedReference.value = ref; qrStatus.textContent = 'QR verified for this PO. Upload remains optional and non-blocking.'; scanButton.textContent = 'QR verified'; scanButton.disabled = true;
-    } catch (error) { qrStatus.textContent = error.message + ' You may still upload without scanning.'; }
-  };
-  picker.click();
-}
-scanButton?.addEventListener('click', scanQr);
 function send(blob) {
   return new Promise((resolve,reject) => {
     const xhr = new XMLHttpRequest(); xhr.open('POST', API + '/v1/photo-intake/upload');
     xhr.timeout = 120000;
     xhr.setRequestHeader('content-type',blob.type);
     xhr.setRequestHeader('x-po-upload-token',token);
-    if (verifiedCardReference) xhr.setRequestHeader('x-po-card-reference',verifiedCardReference);
     const styleNumber = (styleNumberInput?.value || '').trim();
-    if (styleNumber) xhr.setRequestHeader('x-po-style-number', styleNumber);
+    if (!styleNumber) { reject(Error('Select the exact Style Number before upload.')); return; }
+    xhr.setRequestHeader('x-po-style-number', styleNumber);
     xhr.upload.onprogress = e => { if(e.lengthComputable) progress.value = 100*e.loaded/e.total; };
     xhr.onload = () => {
       let data; try { data = JSON.parse(xhr.responseText); } catch { reject(Error('Invalid server response')); return; }
@@ -109,9 +86,10 @@ form.addEventListener('submit', async e => {
   e.preventDefault();
   const files = Array.from(input.files);
   if (!files.length || files.length > maxBatch) {
-    statusEl.textContent = 'Select 1 to 5 photos of the same Style Number before uploading.';
+    statusEl.textContent = 'Select one photograph for a Style Number before uploading.';
     return;
   }
+  if (!styleNumberInput.value.trim()) { statusEl.textContent = 'Select the exact Style Number before uploading.'; return; }
   button.disabled = true; input.disabled = true; styleNumberInput.disabled = true; progress.hidden = false;
   let received = 0, failed = 0;
   for (const file of files) {
@@ -120,7 +98,7 @@ form.addEventListener('submit', async e => {
     try {
       const blob = await optimize(file); item.textContent = file.name + ': uploading…';
       const data = await send(blob); received++;
-      item.textContent = file.name + ': received pending review. Receipt: ' + data.receipt_id;
+      item.textContent = file.name + ': upload confirmed. Receipt: ' + data.receipt_id;
     } catch (error) { failed++; item.textContent = file.name + ': FAILED — ' + error.message; }
   }
   statusEl.textContent = received + ' received; ' + failed + ' failed. Select only failed files to retry.';
@@ -133,7 +111,7 @@ form.addEventListener('submit', async e => {
     const data = await response.json(); if (!response.ok) throw Error(data.error || 'Link unavailable');
     document.getElementById('vendor-name').value = data.vendor;
     document.getElementById('po-number').value = data.po;
-    currentContext = data; qrPanel.hidden = false;
+    currentContext = data;
     statusEl.textContent = 'Link verified. Uploads will be received for this vendor and PO only.'; form.hidden = false;
     const cardButton = document.createElement('button'); cardButton.type = 'button'; cardButton.className = 'pending'; cardButton.textContent = 'Download / print this PO Photo Card';
     form.before(cardButton);
