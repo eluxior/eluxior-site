@@ -20,9 +20,9 @@ main{max-width:1100px;margin:0 auto;padding:22px 24px 55px}h1{font-size:clamp(27
 <div class="eyebrow">Vendor instructions · New procedure from 01 November 2026</div>
 <h1>Submit your PO product photos</h1>
 <p class="lede">This procedure is <strong>mandatory for every new ELUXIOR Purchase Order</strong>. It takes only four steps. You must send at least one clear reference photograph for every distinct Style Number on each PO.</p>
-<div class="notice"><strong>One PO = one PO Photo Card file.</strong> Use the secure PO-specific link supplied by ELUXIOR for that PO. The page verifies your vendor and PO and provides the PO Photo Card. If your Digest A does not contain the link, contact ELUXIOR before uploading. For each product, you write only the <strong>STYLE NUMBER</strong> and the <strong>PHOTO DATE</strong>. The same PO card is reused for each SKU in that PO.</div>
+<div class="notice"><strong>One PO = one PO Photo Card file.</strong> Open the PO link in your Digest A or B, or enter the PO number below. Verify your authorized email in the secure portal, then check the vendor, PO and SKU list and download the PO Photo Card. For each product, write only the <strong>STYLE NUMBER</strong> and <strong>PHOTO DATE</strong>. The same PO card is reused for each SKU in that PO.</div>
 <section class="steps" aria-label="Submission steps">
- <div class="step"><h2><span class="num">1</span>Download</h2><p>Open the secure link supplied for the relevant PO. Check the vendor and PO shown on the page, then use its card download button. If the link is missing from your Digest A, contact ELUXIOR. Do not use the blank Showroom Product Card for a PO.</p></div>
+ <div class="step"><h2><span class="num">1</span>Download</h2><p>Open the PO link or enter its number below. Verify your email, then check the vendor, PO and SKU list before downloading the card. If the PO is unavailable, contact ELUXIOR.</p></div>
  <div class="step"><h2><span class="num">2</span>Write</h2><p>Write the exact <strong>STYLE NUMBER</strong> and <strong>DATE OF PHOTO</strong> clearly and in large characters on the printed card. Nothing else is needed.</p></div>
  <div class="step"><h2><span class="num">3</span>Photograph</h2><p>Photograph the <strong>complete product with the whole card visible and a measuring tape beside the product</strong>. The written Style Number and date must be legible. One photo per distinct SKU per PO; different sizes/colours/finishes require separate photos. Keep each photo <strong>under 2 MB</strong> without sacrificing readability.</p></div>
  <div class="step"><h2><span class="num">4</span>Upload</h2><p>Use the Upload photographs button on that PO's secure page after checking the vendor and PO. No Google account is needed.</p></div>
@@ -30,32 +30,18 @@ main{max-width:1100px;margin:0 auto;padding:22px 24px 55px}h1{font-size:clamp(27
 <section class="action" aria-labelledby="upload-title">
  <div class="eyebrow">ELUXIOR Photo Intake</div>
  <h2 id="upload-title">Send your PO photographs</h2>
- <p>This page needs the secure PO-specific link from ELUXIOR. The vendor and PO are filled automatically and cannot be changed. If your Digest A does not contain the photo actions, contact ELUXIOR for the link.</p>
- <p id="intake-status" role="status" aria-live="polite">Checking your upload link…</p>
- <div class="form-grid">
- <label class="field">Vendor name <input id="vendor-name" readonly></label>
- <label class="field">Purchase Order number <input id="po-number" readonly></label>
- </div>
- <form id="photo-form" hidden>
- <label class="field">Style Number <input id="style-number" type="text" maxlength="80" required placeholder="Select the exact SKU on this PO"></label>
- <label class="field" for="photos">Select one photograph (JPEG, PNG or WebP, up to 8 MB original)
- <input id="photos" type="file" accept="image/jpeg,image/png,image/webp" required></label>
- <p class="photo-requirement">Each photograph must clearly show the product and its PO Photo Card with the Style Number written legibly.</p>
- <p class="small">Upload one photo at a time for the exact SKU. After its first upload, additional photos may show retail packaging and branding, price tickets, how products are packed inside master cartons, pallets, or paper markings on cartons.</p>
- <p class="small">Photos above 2 MB are optimized before upload. Check that the card remains readable in the preview. Keep your original files.</p>
- <div id="previews" style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0"></div>
- <button class="pending" id="upload-button" type="submit">Upload photographs</button>
- <progress id="upload-progress" value="0" max="100" hidden style="width:100%"></progress>
+ <p>Enter the PO number or follow the PO link in your Digest. The secure portal verifies your authorized vendor email and shows the current SKU list before any upload.</p>
+ <p id="intake-status" role="status" aria-live="polite">Enter a PO number to continue.</p>
+ <form id="photo-form">
+  <label class="field" for="po-entry">Purchase Order number
+   <input id="po-entry" type="text" inputmode="numeric" autocomplete="off" pattern="[0-9]{6,8}" maxlength="8" required placeholder="6 to 8 digits">
+  </label>
+  <button class="pending" type="submit">Open secure Photo Card portal</button>
  </form>
- <ol id="upload-results" aria-live="polite"></ol>
- <p class="hint">Upload confirmed means the photograph was received for the selected SKU. The vendor is responsible for photographing the correct ordered product. Keep the receipt ID and retry failed files only.</p>
- <div class="links">
- <a href="/vendor-guidelines/">Vendor Guidelines</a>
- <a href="/vendor-guidelines/paper-photo-marking.pdf">Blank Showroom Product Card (A5 PDF)</a>
- <a href="https://drive.google.com/file/d/16OhtE7_CNvzgsMfvOoUeNLrkETg-m4ui/view" target="_blank" rel="noopener">Mandatory procedure (A4 PDF)</a>
- <a href="https://drive.google.com/file/d/1JX3t4dSmAEXtagWptFHJszkrYQi7BM4v/view" target="_blank" rel="noopener">Updated Vendor Procedures Handbook</a>
- </div>
+ <p class="small">After email verification, check the PO, vendor and verified Style Numbers. Select a listed SKU and upload one photograph at a time. Additional photos may show retail packaging and branding, price tickets, master cartons, pallets, or paper markings on cartons. If an SKU is missing or cancelled, report the change to ELUXIOR for reconciliation with the PO.</p>
+ <p class="hint">“Upload confirmed” means that the file was received for that PO and SKU. The vendor is responsible for photographing the correct ordered product. Keep the receipt ID and retry failed files only.</p>
+ <div class="links"><a href="/vendor-guidelines/">Vendor Guidelines</a></div>
 </section>
 <p class="small">Verify the SKU count and Style Numbers against the latest PO. If an SKU was added or cancelled, contact ELUXIOR so the authoritative PO list can be corrected. The current PO and official TJX instructions take precedence for packing, compliance and shipping.</p>
 </main>
-<script src="./intake.js?v=20261113-staging" defer></script></body></html>
+<script src="./intake.js?v=20261114-v2-bridge-staging" defer></script></body></html>
