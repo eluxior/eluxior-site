@@ -1,130 +1,49 @@
 "use strict";
-const API = 'https://eluxior-vendor-api.marco-eluxior.workers.dev';
-const statusEl = document.getElementById('intake-status');
-const form = document.getElementById('photo-form');
-const input = document.getElementById('photos');
-const results = document.getElementById('upload-results');
-const button = document.getElementById('upload-button');
-const progress = document.getElementById('upload-progress');
-const token = new URL(location.href).searchParams.get('token') || '';
-const styleNumberInput = document.getElementById('style-number');
-let currentContext = null;
-// Remove bearer capability from the address bar and referrer history immediately.
-history.replaceState(null, '', location.pathname);
-const limit = 2 * 1024 * 1024;
-const urls = [];
-const maxBatch = 1;
-function renderPreviews() {
-  urls.splice(0).forEach(URL.revokeObjectURL);
-  const previews = document.getElementById('previews'); previews.replaceChildren();
-  Array.from(input.files).forEach((file, index) => {
-    const url = URL.createObjectURL(file); urls.push(url);
-    const card = document.createElement('figure'); card.className = 'preview-card';
-    const image = document.createElement('img'); image.src = url; image.alt = 'Selected photo: ' + file.name;
-    const caption = document.createElement('figcaption'); caption.textContent = file.name;
-    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'remove-photo';
-    remove.textContent = 'Remove photo'; remove.setAttribute('aria-label', 'Remove ' + file.name);
-    remove.addEventListener('click', () => {
-      if (button.disabled) return;
-      const remaining = Array.from(input.files).filter((_, i) => i !== index);
-      const transfer = new DataTransfer(); remaining.forEach(item => transfer.items.add(item));
-      input.files = transfer.files;
-      statusEl.textContent = file.name + ' removed from the selection. Nothing was uploaded.';
-      renderPreviews();
-    });
-    card.append(image, caption, remove); previews.append(card);
-  });
+
+// Staging bridge to the one authoritative Photo Card v2 portal. This page
+// never receives an upload, OTP, vendor identity or photo binary.
+const PORTAL = "https://eluxior-vendor-api.marco-eluxior.workers.dev/photo-card";
+const status = document.getElementById("intake-status");
+const form = document.getElementById("photo-form");
+const poInput = document.getElementById("po-entry");
+const query = new URL(location.href).searchParams;
+const poFromDigest = query.get("po");
+const legacyToken = query.has("token");
+
+// Do not retain or forward legacy bearer links in the referrer or browser URL.
+history.replaceState(null, "", location.pathname);
+
+function canonicalPo(value) {
+  const po = String(value || "").replaceAll(" ", "");
+  return /^[0-9]{6,8}$/.test(po) ? po : null;
 }
-input.addEventListener('change', () => {
-  if (input.files.length > maxBatch) {
-    input.value = ''; renderPreviews();
-    statusEl.textContent = 'Select one photograph at a time. Nothing was uploaded.';
+
+function openPortal(po) {
+  // Full-page navigation keeps the authenticated cookie first-party on the
+  // Worker origin. The PO is an identifier, never an authorization token.
+  location.assign(PORTAL + "?po=" + encodeURIComponent(po));
+}
+
+if (legacyToken) {
+  status.textContent = "This older upload link cannot be used with the new secure portal. Enter the PO number and verify your authorized email, or contact ELUXIOR.";
+}
+if (poFromDigest !== null) {
+  const po = canonicalPo(poFromDigest);
+  if (po) {
+    poInput.value = po;
+    // A Digest B PO link enters the same portal as a manual PO selection.
+    openPortal(po);
+  } else {
+    status.textContent = "Invalid PO number in the link. Enter the 6 to 8 digit PO number below.";
+  }
+}
+form.addEventListener("submit", event => {
+  event.preventDefault();
+  const po = canonicalPo(poInput.value);
+  if (!po) {
+    status.textContent = "Enter the 6 to 8 digit PO number from your order.";
+    poInput.focus();
     return;
   }
-  renderPreviews();
+  openPortal(po);
 });
-async function optimize(file) {
-  if (!['image/jpeg','image/png','image/webp'].includes(file.type)) throw Error('Unsupported image format');
-  if (file.size > 8 * 1024 * 1024) throw Error('Original exceeds 8 MB');
-  // Decode every file so corrupt images are rejected before sending.
-  const bitmap = await createImageBitmap(file);
-  try {
-    if (file.size < limit) return file;
-    const canvas = document.createElement('canvas');
-    // Retain resolution first; never silently shrink card lettering.
-    canvas.width = bitmap.width; canvas.height = bitmap.height;
-    const ctx = canvas.getContext('2d'); ctx.fillStyle = '#fff';
-    ctx.fillRect(0,0,canvas.width,canvas.height); ctx.drawImage(bitmap,0,0);
-    for (const quality of [0.92,0.86,0.80]) {
-      const blob = await new Promise(resolve => canvas.toBlob(resolve,'image/jpeg',quality));
-      if (blob && blob.size < limit) return blob;
-    }
-    throw Error('Cannot optimize below 2 MB without stronger compression. Export a smaller clear image and retry.');
-  } finally { bitmap.close(); }
-}
-function send(blob) {
-  return new Promise((resolve,reject) => {
-    const xhr = new XMLHttpRequest(); xhr.open('POST', API + '/v1/photo-intake/upload');
-    xhr.timeout = 120000;
-    xhr.setRequestHeader('content-type',blob.type);
-    xhr.setRequestHeader('x-po-upload-token',token);
-    const styleNumber = (styleNumberInput?.value || '').trim();
-    if (!styleNumber) { reject(Error('Select the exact Style Number before upload.')); return; }
-    xhr.setRequestHeader('x-po-style-number', styleNumber);
-    xhr.upload.onprogress = e => { if(e.lengthComputable) progress.value = 100*e.loaded/e.total; };
-    xhr.onload = () => {
-      let data; try { data = JSON.parse(xhr.responseText); } catch { reject(Error('Invalid server response')); return; }
-      if (xhr.status >= 200 && xhr.status < 300 && data.receipt_id) resolve(data);
-      else reject(Error(data.error || 'Upload failed (' + xhr.status + ')'));
-    };
-    xhr.onerror = () => reject(Error('Connection interrupted; receipt unconfirmed. Retry this file.'));
-    xhr.ontimeout = () => reject(Error('Timed out; receipt unconfirmed. Retry this file.'));
-    xhr.send(blob);
-  });
-}
-form.addEventListener('submit', async e => {
-  e.preventDefault();
-  const files = Array.from(input.files);
-  if (!files.length || files.length > maxBatch) {
-    statusEl.textContent = 'Select one photograph for a Style Number before uploading.';
-    return;
-  }
-  if (!styleNumberInput.value.trim()) { statusEl.textContent = 'Select the exact Style Number before uploading.'; return; }
-  button.disabled = true; input.disabled = true; styleNumberInput.disabled = true; progress.hidden = false;
-  let received = 0, failed = 0;
-  for (const file of files) {
-    const item = document.createElement('li'); results.append(item); progress.value = 0;
-    item.textContent = file.name + ': preparing…';
-    try {
-      const blob = await optimize(file); item.textContent = file.name + ': uploading…';
-      const data = await send(blob); received++;
-      item.textContent = file.name + ': upload confirmed. Receipt: ' + data.receipt_id;
-    } catch (error) { failed++; item.textContent = file.name + ': FAILED — ' + error.message; }
-  }
-  statusEl.textContent = received + ' received; ' + failed + ' failed. Select only failed files to retry.';
-  input.value = ''; renderPreviews(); button.disabled = false; input.disabled = false; styleNumberInput.disabled = false; progress.hidden = true;
-});
-(async () => {
-  if (!token) { statusEl.textContent = 'Open the secure PO-specific link supplied by ELUXIOR. If you do not have one, contact ELUXIOR.'; return; }
-  try {
-    const response = await fetch(API + '/v1/photo-intake/context?token=' + encodeURIComponent(token), {cache:'no-store',referrerPolicy:'no-referrer'});
-    const data = await response.json(); if (!response.ok) throw Error(data.error || 'Link unavailable');
-    document.getElementById('vendor-name').value = data.vendor;
-    document.getElementById('po-number').value = data.po;
-    currentContext = data;
-    statusEl.textContent = 'Link verified. Uploads will be received for this vendor and PO only.'; form.hidden = false;
-    const cardButton = document.createElement('button'); cardButton.type = 'button'; cardButton.className = 'pending'; cardButton.textContent = 'Download / print this PO Photo Card';
-    form.before(cardButton);
-    cardButton.addEventListener('click', async () => {
-      cardButton.disabled = true;
-      try {
-        const response = await fetch(API + '/v1/photo-intake/card', {headers:{'x-po-upload-token':token},cache:'no-store',referrerPolicy:'no-referrer'});
-        if(!response.ok) throw Error('Card unavailable. Contact ELUXIOR.');
-        const blob = await response.blob(), url = URL.createObjectURL(blob);
-        const link = document.createElement('a'); link.href = url; link.download = blob.type.includes('application/pdf') ? 'ELUXIOR-PO-' + String(data.po).replace(/[^0-9A-Za-z-]/g,'') + '-Photo-Card.pdf' : 'ELUXIOR-PO-Photo-Card.html'; link.click();
-        setTimeout(()=>URL.revokeObjectURL(url),60000);
-      } catch(error) { statusEl.textContent = error.message; }
-      cardButton.disabled = false;
-    });
-  } catch(error) { statusEl.textContent = error.message + '. Contact ELUXIOR for a new link.'; }
-})();
