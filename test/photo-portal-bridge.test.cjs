@@ -6,7 +6,7 @@ const path = require('node:path');
 
 const script = fs.readFileSync(path.join(__dirname, '../vendor-photo-submission/intake.js'), 'utf8');
 const portal = 'https://eluxior-vendor-api.marco-eluxior.workers.dev/photo-card';
-function visit(url) {
+function visit(url, fetchImpl = () => Promise.reject(Error('Unexpected fetch'))) {
   const events = {};
   const elements = {
     'intake-status': {textContent:''},
@@ -17,7 +17,7 @@ function visit(url) {
   const location = {href:url,pathname:'/vendor-photo-submission/',assign:x=>assigned.push(x)};
   vm.runInNewContext(script,{
     document:{getElementById:id=>elements[id]},
-    location, history:{replaceState:(...args)=>replaced.push(args)}, URL
+    location, history:{replaceState:(...args)=>replaced.push(args)}, URL, fetch:fetchImpl
   });
   return {events,elements,assigned,replaced};
 }
@@ -41,4 +41,25 @@ test('invalid PO cannot navigate or become an authorization token',()=>{
   s.events.submit({preventDefault(){}});
   assert.equal(s.assigned.length,0);
   assert.equal(s.events.focused,true);
+});
+
+test('existing token-only link resolves PO without forwarding token to portal', async()=>{
+  const calls=[];
+  const s=visit('https://www.eluxiorsourcing.com/vendor-photo-submission/?token=old-secret',
+    (url, options)=>{calls.push({url,options}); return Promise.resolve({ok:true,json:async()=>({po:'160844'})});});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(s.replaced[0][2],'/vendor-photo-submission/');
+  assert.equal(calls.length,1);
+  assert.match(calls[0].url,/^https:\\/\\/eluxior-vendor-api\\.marco-eluxior\\.workers\\.dev\\/v1\\/photo-intake\\/context\\?token=/);
+  assert.equal(calls[0].options.referrerPolicy,'no-referrer');
+  assert.deepEqual(s.assigned,[portal+'?po=160844']);
+  assert.equal(s.assigned[0].includes('old-secret'),false);
+});
+
+test('unavailable legacy token leaves manual PO entry available', async()=>{
+  const s=visit('https://www.eluxiorsourcing.com/vendor-photo-submission/?token=expired',
+    ()=>Promise.resolve({ok:false}));
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(s.assigned.length,0);
+  assert.match(s.elements['intake-status'].textContent,/Enter the PO number/);
 });
