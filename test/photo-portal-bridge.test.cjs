@@ -50,7 +50,7 @@ test('existing token-only link resolves PO without forwarding token to portal', 
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(s.replaced[0][2],'/vendor-photo-submission/');
   assert.equal(calls.length,1);
-  assert.match(calls[0].url,/^https:\\/\\/eluxior-vendor-api\\.marco-eluxior\\.workers\\.dev\\/v1\\/photo-intake\\/context\\?token=/);
+  assert.equal(calls[0].url.startsWith('https://eluxior-vendor-api.marco-eluxior.workers.dev/v1/photo-intake/context?token='),true);
   assert.equal(calls[0].options.referrerPolicy,'no-referrer');
   assert.deepEqual(s.assigned,[portal+'?po=160844']);
   assert.equal(s.assigned[0].includes('old-secret'),false);
