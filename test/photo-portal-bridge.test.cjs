@@ -5,6 +5,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 const script = fs.readFileSync(path.join(__dirname, '../vendor-photo-submission/intake.js'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '../vendor-photo-submission/index.html'), 'utf8');
 const portal = 'https://eluxior-vendor-api.marco-eluxior.workers.dev/photo-card';
 function visit(url, fetchImpl = () => Promise.reject(Error('Unexpected fetch'))) {
   const events = {};
@@ -62,4 +63,11 @@ test('unavailable legacy token leaves manual PO entry available', async()=>{
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(s.assigned.length,0);
   assert.match(s.elements['intake-status'].textContent,/Enter the PO number/);
+});
+
+test('PO entry appears before compact instructions and protects legacy token referrers',()=>{
+  assert(html.indexOf('<section class="action"') < html.indexOf('<section class="steps"'));
+  assert(html.indexOf('name="referrer"') < html.indexOf('rel="stylesheet"'));
+  assert.doesNotMatch(html,/measuring tape/i);
+  assert.match(html,/Upload confirmed.*file was received/s);
 });
