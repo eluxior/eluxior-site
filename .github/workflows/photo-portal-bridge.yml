@@ -1,0 +1,29 @@
+name: Photo Upload V2 bridge checks
+
+on:
+  push:
+    branches:
+      - feature/photo-upload-v2-safe-cutover-20261121
+    paths:
+      - "vendor-photo-submission/**"
+      - "test/photo-portal-bridge.test.cjs"
+      - ".github/workflows/photo-portal-bridge.yml"
+  pull_request:
+    paths:
+      - "vendor-photo-submission/**"
+      - "test/photo-portal-bridge.test.cjs"
+      - ".github/workflows/photo-portal-bridge.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portal-bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+      - name: Run built-in Node tests (no secrets)
+        run: node --test test/photo-portal-bridge.test.cjs
