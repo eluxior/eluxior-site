@@ -12,6 +12,7 @@ on:
   pull_request:
     paths:
       - "vendor-photo-submission/**"
+      - "admin-photo-review/**"
       - "test/photo-portal-bridge.test.cjs"
       - ".github/workflows/photo-portal-bridge.yml"
   workflow_dispatch:
