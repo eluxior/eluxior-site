@@ -2,7 +2,10 @@
 
 // Staging bridge to the one authoritative Photo Card v2 portal. This page
 // never receives an upload, OTP, vendor identity or photo binary.
-const PORTAL = "https://eluxior-vendor-api.marco-eluxior.workers.dev/photo-card";
+const PORTAL = "https://photo-api.eluxiorsourcing.com/photo-card";
+// Default disabled: only enable after verified v2 Worker production cutover,
+// email roster / OTP delivery, session and upload receipts have passed QA.
+const READY = window.ELUXIOR_PHOTO_V2_READY === true;
 const status = document.getElementById("intake-status");
 const form = document.getElementById("photo-form");
 const poInput = document.getElementById("po-entry");
@@ -14,13 +17,17 @@ const legacyToken = query.get("token") || "";
 history.replaceState(null, "", location.pathname);
 
 function canonicalPo(value) {
-  const po = String(value || "").replaceAll(" ", "");
+  const po = String(value || "").replace(/[\s-]/g, "");
   return /^[0-9]{6,8}$/.test(po) ? po : null;
 }
 
 function openPortal(po) {
-  // Full-page navigation keeps the authenticated cookie first-party on the
-  // Worker origin. The PO is an identifier, never an authorization token.
+  if (!READY) {
+    status.textContent = "Secure Photo Card access is being updated. Please contact ELUXIOR with your PO number; do not send photographs or login codes by email.";
+    return;
+  }
+  // Full-page navigation keeps OTP session cookies first-party. A PO number
+  // is only an identifier, never permission to view another vendor's PO.
   location.assign(PORTAL + "?po=" + encodeURIComponent(po));
 }
 
@@ -33,23 +40,11 @@ if (poFromDigest !== null) {
     status.textContent = "Invalid PO number in the link. Enter the 6 to 8 digit PO number below.";
   }
 } else if (legacyToken) {
-  // Existing Odoo/Digest links carry only a v1 token. Resolve the PO on the
-  // official Worker, then discard the token; it never reaches the v2 portal.
-  status.textContent = "Checking the existing PO link…";
-  fetch("https://eluxior-vendor-api.marco-eluxior.workers.dev/v1/photo-intake/context?token=" +
-    encodeURIComponent(legacyToken), { cache: "no-store", referrerPolicy: "no-referrer" })
-    .then(async response => {
-      if (!response.ok) throw Error("Existing link unavailable");
-      const context = await response.json();
-      const po = canonicalPo(context.po);
-      if (!po) throw Error("Invalid PO in existing link");
-      poInput.value = po;
-      openPortal(po);
-    })
-    .catch(() => {
-      status.textContent = "This PO link could not be verified. Enter the PO number and verify your authorized email, or contact ELUXIOR.";
-    });
+  // Never resolve signed v1 bearer links in client code: that would
+  // expose reusable secrets to a URL endpoint and bypass the v2 whitelist.
+  status.textContent = "This older link is no longer accepted on this page. Enter the Purchase Order number below and verify your registered email, or request access from ELUXIOR.";
 }
+
 form.addEventListener("submit", event => {
   event.preventDefault();
   const po = canonicalPo(poInput.value);

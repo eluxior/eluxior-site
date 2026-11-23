@@ -6,8 +6,8 @@ const path = require('node:path');
 
 const script = fs.readFileSync(path.join(__dirname, '../vendor-photo-submission/intake.js'), 'utf8');
 const html = fs.readFileSync(path.join(__dirname, '../vendor-photo-submission/index.html'), 'utf8');
-const portal = 'https://eluxior-vendor-api.marco-eluxior.workers.dev/photo-card';
-function visit(url, fetchImpl = () => Promise.reject(Error('Unexpected fetch'))) {
+const portal = 'https://photo-api.eluxiorsourcing.com/photo-card';
+function visit(url, ready = true) {
   const events = {};
   const elements = {
     'intake-status': {textContent:''},
@@ -18,7 +18,7 @@ function visit(url, fetchImpl = () => Promise.reject(Error('Unexpected fetch')))
   const location = {href:url,pathname:'/vendor-photo-submission/',assign:x=>assigned.push(x)};
   vm.runInNewContext(script,{
     document:{getElementById:id=>elements[id]},
-    location, history:{replaceState:(...args)=>replaced.push(args)}, URL, fetch:fetchImpl
+    location, history:{replaceState:(...args)=>replaced.push(args)}, URL, window:{ELUXIOR_PHOTO_V2_READY:ready}
   });
   return {events,elements,assigned,replaced};
 }
@@ -44,25 +44,23 @@ test('invalid PO cannot navigate or become an authorization token',()=>{
   assert.equal(s.events.focused,true);
 });
 
-test('existing token-only link resolves PO without forwarding token to portal', async()=>{
-  const calls=[];
-  const s=visit('https://www.eluxiorsourcing.com/vendor-photo-submission/?token=old-secret',
-    (url, options)=>{calls.push({url,options}); return Promise.resolve({ok:true,json:async()=>({po:'160844'})});});
-  await new Promise(resolve=>setImmediate(resolve));
+test('legacy token is removed from browser URL without sending any request',()=>{
+  const s=visit('https://www.eluxiorsourcing.com/vendor-photo-submission/?token=old-secret');
+  assert.deepEqual(s.assigned,[]);
   assert.equal(s.replaced[0][2],'/vendor-photo-submission/');
-  assert.equal(calls.length,1);
-  assert.equal(calls[0].url.startsWith('https://eluxior-vendor-api.marco-eluxior.workers.dev/v1/photo-intake/context?token='),true);
-  assert.equal(calls[0].options.referrerPolicy,'no-referrer');
-  assert.deepEqual(s.assigned,[portal+'?po=160844']);
-  assert.equal(s.assigned[0].includes('old-secret'),false);
+  assert.match(s.elements['intake-status'].textContent,/older link/);
 });
-
-test('unavailable legacy token leaves manual PO entry available', async()=>{
-  const s=visit('https://www.eluxiorsourcing.com/vendor-photo-submission/?token=expired',
-    ()=>Promise.resolve({ok:false}));
-  await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(s.assigned.length,0);
-  assert.match(s.elements['intake-status'].textContent,/Enter the PO number/);
+test('default feature gate blocks redirect until authenticated production portal is verified',()=>{
+  const s=visit('https://www.eluxiorsourcing.com/vendor-photo-submission/?po=186650',false);
+  assert.deepEqual(s.assigned,[]);
+  assert.equal(s.elements['po-entry'].value,'186650');
+  assert.match(s.elements['intake-status'].textContent,/being updated/);
+});
+test('prefixed PO numbers normalize hyphens and spaces without bearer tokens',()=>{
+  const s=visit('https://www.eluxiorsourcing.com/vendor-photo-submission/');
+  s.elements['po-entry'].value='25-194660';
+  s.events.submit({preventDefault(){}});
+  assert.deepEqual(s.assigned,[portal+'?po=25194660']);
 });
 
 test('PO entry appears before compact instructions and protects legacy token referrers',()=>{
@@ -70,4 +68,15 @@ test('PO entry appears before compact instructions and protects legacy token ref
   assert(html.indexOf('name="referrer"') < html.indexOf('rel="stylesheet"'));
   assert.doesNotMatch(html,/measuring tape/i);
   assert.match(html,/Upload confirmed.*file was received/s);
+});
+
+const retiredReview = fs.readFileSync(path.join(__dirname, '../admin-photo-review/index.html'), 'utf8');
+test('legacy admin decision UI is retired: receipt-only with no approval API or credentials',()=>{
+  assert.match(retiredReview, /Upload confirmed/);
+  assert.match(retiredReview, /vendor remains responsible/i);
+  assert.match(retiredReview, /no manual or automatic product-image approval stage/i);
+  assert.doesNotMatch(retiredReview, /\/v1\/admin\/photo-review/);
+  assert.doesNotMatch(retiredReview, /(?:approved|needs_review|rejected).*onclick/i);
+  assert.doesNotMatch(retiredReview, /type=["']password["']/);
+  assert.doesNotMatch(retiredReview, /<script\b/i);
 });
