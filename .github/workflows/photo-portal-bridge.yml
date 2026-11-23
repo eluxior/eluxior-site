@@ -6,6 +6,7 @@ on:
       - feature/photo-upload-v2-safe-cutover-20261121
     paths:
       - "vendor-photo-submission/**"
+      - "admin-photo-review/**"
       - "test/photo-portal-bridge.test.cjs"
       - ".github/workflows/photo-portal-bridge.yml"
   pull_request:
