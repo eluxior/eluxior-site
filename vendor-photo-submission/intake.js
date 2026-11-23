@@ -2,7 +2,7 @@
 
 // Staging bridge to the one authoritative Photo Card v2 portal. This page
 // never receives an upload, OTP, vendor identity or photo binary.
-const PORTAL = "https://eluxior-vendor-api.marco-eluxior.workers.dev/photo-card";
+const PORTAL = "https://photo-api.eluxiorsourcing.com/photo-card";
 // Default disabled: only enable after verified v2 Worker production cutover,
 // email roster / OTP delivery, session and upload receipts have passed QA.
 const READY = window.ELUXIOR_PHOTO_V2_READY === true;
