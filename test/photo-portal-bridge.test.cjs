@@ -6,7 +6,7 @@ const path = require('node:path');
 
 const script = fs.readFileSync(path.join(__dirname, '../vendor-photo-submission/intake.js'), 'utf8');
 const html = fs.readFileSync(path.join(__dirname, '../vendor-photo-submission/index.html'), 'utf8');
-const portal = 'https://eluxior-vendor-api.marco-eluxior.workers.dev/photo-card';
+const portal = 'https://photo-api.eluxiorsourcing.com/photo-card';
 function visit(url, ready = true) {
   const events = {};
   const elements = {
