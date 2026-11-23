@@ -69,3 +69,14 @@ test('PO entry appears before compact instructions and protects legacy token ref
   assert.doesNotMatch(html,/measuring tape/i);
   assert.match(html,/Upload confirmed.*file was received/s);
 });
+
+const retiredReview = fs.readFileSync(path.join(__dirname, '../admin-photo-review/index.html'), 'utf8');
+test('legacy admin decision UI is retired: receipt-only with no approval API or credentials',()=>{
+  assert.match(retiredReview, /Upload confirmed/);
+  assert.match(retiredReview, /vendor remains responsible/i);
+  assert.match(retiredReview, /no manual or automatic product-image approval stage/i);
+  assert.doesNotMatch(retiredReview, /\/v1\/admin\/photo-review/);
+  assert.doesNotMatch(retiredReview, /(?:approved|needs_review|rejected).*onclick/i);
+  assert.doesNotMatch(retiredReview, /type=["']password["']/);
+  assert.doesNotMatch(retiredReview, /<script\b/i);
+});
